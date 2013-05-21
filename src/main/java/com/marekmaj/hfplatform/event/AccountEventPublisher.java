@@ -7,8 +7,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ThreadLocalRandom;
 
 
-public final class AccountEventPublisher implements Runnable
-{
+public final class AccountEventPublisher implements Runnable {
     private final CyclicBarrier cyclicBarrier;
     private final RingBuffer<AccountEvent> ringBuffer;
     private final long iterations;
@@ -17,8 +16,7 @@ public final class AccountEventPublisher implements Runnable
     public AccountEventPublisher(final CyclicBarrier cyclicBarrier,
                                  final RingBuffer<AccountEvent> ringBuffer,
                                  final long iterations,
-                                 final Account[] accounts)
-    {
+                                 final Account[] accounts) {
         this.cyclicBarrier = cyclicBarrier;
         this.ringBuffer = ringBuffer;
         this.iterations = iterations;
