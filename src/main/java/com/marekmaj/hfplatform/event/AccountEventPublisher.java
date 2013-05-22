@@ -40,6 +40,7 @@ public final class AccountEventPublisher implements Runnable {
         }
     }
 
+    // TODO wyrzuc te randomy
     private TransferAccountCommand createRandomTransferAccountCommand(){
         return new TransferAccountCommand(accounts[ThreadLocalRandom.current().nextInt(accounts.length)],
                 accounts[ThreadLocalRandom.current().nextInt(accounts.length)],

@@ -82,7 +82,7 @@ public class SingleThreadApp extends BaseApp {
     @Override
     protected void showStatsSpecific() {
         for (AccountEventWorkHandler handler : handlers){
-            System.out.println( "Total ops for handler " + handler.getCounter().get());
+            System.out.println( "Total ops for handler " + handler.getCounter());
         }
     }
 }
