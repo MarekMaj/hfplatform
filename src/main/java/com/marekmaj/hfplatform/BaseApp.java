@@ -1,11 +1,11 @@
 package com.marekmaj.hfplatform;
 
+import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.RingBuffer;
-import com.lmax.disruptor.YieldingWaitStrategy;
-import com.marekmaj.hfplatform.event.AccountEvent;
-import com.marekmaj.hfplatform.event.AccountEventPublisher;
-import com.marekmaj.hfplatform.event.BalanceAccountCommand;
-import com.marekmaj.hfplatform.event.TransferAccountCommand;
+import com.marekmaj.hfplatform.event.incoming.AccountEvent;
+import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
+import com.marekmaj.hfplatform.event.incoming.BalanceAccountCommand;
+import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
 import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.utils.Stats;
 
@@ -14,24 +14,26 @@ import java.util.concurrent.ThreadLocalRandom;
 
 
 public abstract class BaseApp {
-    protected static final int BUFFER_SIZE = 1024 * 64;
+    protected static final int INPUT_DISRUPTOR_SIZE = 1024 * 64;
+    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 128;
     protected static final int NUM_ACCOUNTS = 100;
-    protected static final long ITERATIONS = 1000L * 1000L * 100L;
+    protected static final long ITERATIONS = 100000L ;//* 1000L * 1L;
     protected static final long WARMUP = 1000L * 1000L * 10L;
     protected static final double INITIAL_BALANCE = 100000;
 
-    protected static final int NUM_PUBLISHERS = 1;
+    protected static final int GATEWAY_PUBLISHERS_COUNT = 1;
+    protected static final int GATEWAY_CONSUMERS_COUNT = 1;
 
     protected Account[] accounts;
 
-    protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(NUM_PUBLISHERS + 1);
+    protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(GATEWAY_PUBLISHERS_COUNT + 1);
 
-    protected final RingBuffer<AccountEvent> ringBuffer =
+    protected final RingBuffer<AccountEvent> inputDisruptor =
             RingBuffer.createSingleProducer(AccountEvent.ACCOUNT_EVENT_FACTORY,
-                    BUFFER_SIZE,
-                    new YieldingWaitStrategy());  // TODO bound threads to cores
+                    INPUT_DISRUPTOR_SIZE,
+                    new BusySpinWaitStrategy());  // TODO bound threads to cores
 
-    protected final AccountEventPublisher[] accountEventPublishers = new AccountEventPublisher[NUM_PUBLISHERS];
+    protected final AccountEventPublisher[] accountEventPublishers = new AccountEventPublisher[GATEWAY_PUBLISHERS_COUNT];
 
 
     protected TransferAccountCommand createRandomTransferAccountCommand(){
@@ -50,7 +52,7 @@ public abstract class BaseApp {
         //System.gc();
         long start = System.currentTimeMillis();
         start();
-        long opsPerSecond = (ITERATIONS * NUM_PUBLISHERS * 1000L) / (System.currentTimeMillis() - start);
+        long opsPerSecond = (ITERATIONS * GATEWAY_PUBLISHERS_COUNT * 1000L) / (System.currentTimeMillis() - start);
         showStats(opsPerSecond);
         showStatsSpecific();
 

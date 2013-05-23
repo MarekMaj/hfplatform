@@ -4,8 +4,8 @@ package com.marekmaj.hfplatform;
 import com.lmax.disruptor.FatalExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkerPool;
-import com.marekmaj.hfplatform.event.AccountEvent;
-import com.marekmaj.hfplatform.event.AccountEventPublisher;
+import com.marekmaj.hfplatform.event.incoming.AccountEvent;
+import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
 import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
 import com.marekmaj.hfplatform.service.AccountService;
 import com.marekmaj.hfplatform.service.impl.SingleThreadedAccountService;
@@ -35,14 +35,14 @@ public class SingleThreadApp extends BaseApp {
         }
     }
     {
-        for (int i = 0; i < NUM_PUBLISHERS; i++) {
-            accountEventPublishers[i] = new AccountEventPublisher(cyclicBarrier, ringBuffer, ITERATIONS, accounts);
+        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
+            accountEventPublishers[i] = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
         }
     }
 
     private final WorkerPool<AccountEvent> workerPool =
-            new WorkerPool<AccountEvent>(ringBuffer,
-                    ringBuffer.newBarrier(),
+            new WorkerPool<AccountEvent>(inputDisruptor,
+                    inputDisruptor.newBarrier(),
                     new FatalExceptionHandler(),
                     handlers);
 
@@ -59,15 +59,14 @@ public class SingleThreadApp extends BaseApp {
     private void startWork(final long iterations) throws Exception{
         RingBuffer<AccountEvent> ringBuffer = workerPool.start(EXECUTOR);
 
-        Future<?>[] futures = new Future[NUM_PUBLISHERS];
-        for (int i = 0; i < NUM_PUBLISHERS; i++)
-        {
+        Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
+        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
             futures[i] = EXECUTOR2.submit(accountEventPublishers[i]);
         }
 
         cyclicBarrier.await();
 
-        for (int i = 0; i < NUM_PUBLISHERS; i++) {
+        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
             futures[i].get();
         }
 

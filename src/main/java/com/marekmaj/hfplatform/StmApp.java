@@ -3,10 +3,9 @@ package com.marekmaj.hfplatform;
 import com.lmax.disruptor.FatalExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkerPool;
-import com.marekmaj.hfplatform.event.AccountEvent;
-import com.marekmaj.hfplatform.event.AccountEventPublisher;
+import com.marekmaj.hfplatform.event.incoming.AccountEvent;
+import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
 import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
-import com.marekmaj.hfplatform.service.AccountService;
 import com.marekmaj.hfplatform.service.impl.AkkaStmAccountService;
 import com.marekmaj.hfplatform.service.model.StmAccount;
 
@@ -27,22 +26,21 @@ public class StmApp extends BaseApp{
     private static final int NUM_WORKERS = 7;
     private final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
     private final ExecutorService PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
-    private final AccountService accountService = new AkkaStmAccountService();
     private final AccountEventWorkHandler[] handlers = new AccountEventWorkHandler[NUM_WORKERS];
     {
         for (int i = 0; i < NUM_WORKERS; i++){
-            handlers[i] = new AccountEventWorkHandler(accountService);  // TODO this will need something more
+            handlers[i] = new AccountEventWorkHandler(new AkkaStmAccountService());  // TODO this will need something more
         }
     }
     {
-        for (int i = 0; i < NUM_PUBLISHERS; i++) {
-            accountEventPublishers[i] = new AccountEventPublisher(cyclicBarrier, ringBuffer, ITERATIONS, accounts);
+        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
+            accountEventPublishers[i] = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
         }
     }
 
     private final WorkerPool<AccountEvent> workerPool =
-            new WorkerPool<AccountEvent>(ringBuffer,
-                    ringBuffer.newBarrier(),
+            new WorkerPool<AccountEvent>(inputDisruptor,
+                    inputDisruptor.newBarrier(),
                     new FatalExceptionHandler(),
                     handlers);
 
@@ -58,12 +56,12 @@ public class StmApp extends BaseApp{
 /*
 
     private void startWorkOld(final long iterations) throws Exception{
-        RingBuffer<AccountEvent> ringBuffer = workerPool.start(WORKERS_EXECUTOR);
+        RingBuffer<AccountEvent> inputDisruptor = workerPool.start(WORKERS_EXECUTOR);
 
         for (long i = 0; i < iterations; i++) {
-            long sequence = ringBuffer.next();
-            ringBuffer.get(sequence).setAccountCommand(createRandomTransferAccountCommand());
-            ringBuffer.publish(sequence);
+            long sequence = inputDisruptor.next();
+            inputDisruptor.get(sequence).setAccountCommand(createRandomTransferAccountCommand());
+            inputDisruptor.publish(sequence);
         }
 
         workerPool.drainAndHalt();
@@ -73,15 +71,14 @@ public class StmApp extends BaseApp{
     private void startWork(final long iterations) throws Exception{
         RingBuffer<AccountEvent> ringBuffer = workerPool.start(WORKERS_EXECUTOR);
 
-        Future<?>[] futures = new Future[NUM_PUBLISHERS];
-        for (int i = 0; i < NUM_PUBLISHERS; i++)
-        {
+        Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
+        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
             futures[i] = PUBLISHERS_EXECUTOR.submit(accountEventPublishers[i]);
         }
 
         cyclicBarrier.await();
 
-        for (int i = 0; i < NUM_PUBLISHERS; i++) {
+        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
             futures[i].get();
         }
 

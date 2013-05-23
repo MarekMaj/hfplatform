@@ -1,4 +1,4 @@
-package com.marekmaj.hfplatform.event;
+package com.marekmaj.hfplatform.event.incoming;
 
 
 import com.marekmaj.hfplatform.service.AccountService;
