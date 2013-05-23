@@ -15,7 +15,7 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
 
     public void reset(final CountDownLatch latch, final long expectedCount) {
         this.latch = latch;
-        count = expectedCount;
+        count = expectedCount - localSequence;
     }
 
     @Override
@@ -36,8 +36,8 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             System.err.println("Expected: " + (localSequence + 1) + "found: " + sequence);
         }
 
-        System.err.println("sequence: " + sequence + " logged: " + Stats.getLoggedResults().get() );
-        if (count == (Stats.getLoggedResults().get() -1L)) {
+        System.err.println("sequence: " + sequence + " logged: " + Stats.getLoggedResults() );
+        if (count == Stats.getLoggedResults()) {
             latch.countDown();
         }
     }

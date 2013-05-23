@@ -74,19 +74,19 @@ public final class Stats {
         return accountRollbacks.get();
     }
 
-    public static AtomicLong getReadyToPublishResults() {
-        return readyToPublishResults;
+    public static long getReadyToPublishResults() {
+        return readyToPublishResults.get();
     }
 
-    public static AtomicLong getPublishedResults() {
-        return publishedResults;
+    public static long getPublishedResults() {
+        return publishedResults.get();
     }
 
-    public static AtomicLong getLoggedResults() {
-        return loggedResults;
+    public static long getLoggedResults() {
+        return loggedResults.get();
     }
 
-    public static AtomicLong getIgnoredResults() {
-        return ignoredResults;
+    public static long getIgnoredResults() {
+        return ignoredResults.get();
     }
 }

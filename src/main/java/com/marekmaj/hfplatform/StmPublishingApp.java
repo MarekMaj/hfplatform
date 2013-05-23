@@ -75,7 +75,7 @@ public class StmPublishingApp extends BaseApp{
 
     private void startWork(final long iterations) throws Exception{
         final CountDownLatch latch = new CountDownLatch(1);
-        resultEventHandler.reset(latch, batchEventProcessor.getSequence().get() + ((ITERATIONS/NUM_WORKERS)*NUM_WORKERS));
+        resultEventHandler.reset(latch, batchEventProcessor.getSequence().get() + ITERATIONS);
 
         RingBuffer<AccountEvent> ringBuffer = workerPool.start(WORKERS_EXECUTOR);
 
