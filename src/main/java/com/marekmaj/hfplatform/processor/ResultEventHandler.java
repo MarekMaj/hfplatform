@@ -10,6 +10,7 @@ import java.util.concurrent.CountDownLatch;
 public class ResultEventHandler implements EventHandler<ResultEvent> {
 
     private long committed;
+    private long ignored;
     private long count;
     private CountDownLatch latch;
     private long localSequence = -1;
@@ -27,6 +28,7 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
 
             // TODO chronicle event
         } else {
+            ignored++;
             Stats.increaseIgnoredResults();
         }
 
@@ -37,8 +39,11 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             System.err.println("Expected: " + (localSequence + 1) + "found: " + sequence);
         }
 
-        System.out.println("sequence: " + sequence + " logged: " + Stats.getLoggedResults() );
-        if (count == committed) {
+        //System.out.println("sequence: " + sequence + " logged: " + Stats.getLoggedResults() );
+/*        if (endOfBatch){
+            System.out.println("batch: " + sequence + " logged: " + Stats.getLoggedResults() );
+        }*/
+        if (count == committed + ignored) {
             latch.countDown();
         }
     }

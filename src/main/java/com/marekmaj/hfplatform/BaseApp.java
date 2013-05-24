@@ -15,9 +15,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = 1024 * 64;
-    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 128;
+    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 100;
-    protected static final long ITERATIONS = 100000L ;//* 1000L * 1L;
+    protected static final long ITERATIONS = 1000L* 1000L * 1L;
     protected static final long WARMUP = 1000L * 1000L * 10L;
     protected static final double INITIAL_BALANCE = 100000;
 

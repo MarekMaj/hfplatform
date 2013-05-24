@@ -25,6 +25,13 @@ public class StmPublishingApp extends BaseApp{
     private final RingBuffer<ResultEvent> outputDisruptor =
             createMultiProducer(ResultEvent.RESULT_EVENT_FACTORY, OUTPUT_DISRUPTOR_SIZE, new BusySpinWaitStrategy());
 
+    private final SequenceBarrier sequenceBarrier = outputDisruptor.newBarrier();
+    private final ResultEventHandler resultEventHandler = new ResultEventHandler();
+    private final BatchEventProcessor<ResultEvent> batchEventProcessor = new BatchEventProcessor<ResultEvent>(outputDisruptor, sequenceBarrier, resultEventHandler);
+    {
+        outputDisruptor.addGatingSequences(batchEventProcessor.getSequence());
+    }
+
     {
         accounts = new StmAccount[NUM_ACCOUNTS];
         for (int i = 0; i < NUM_ACCOUNTS; i++) {
@@ -57,12 +64,27 @@ public class StmPublishingApp extends BaseApp{
                     inputDisruptor.newBarrier(),
                     new FatalExceptionHandler(),
                     accountEventWorkHandlers);
-
-    private final ResultEventHandler resultEventHandler = new ResultEventHandler();
-    private final BatchEventProcessor<ResultEvent> batchEventProcessor = new BatchEventProcessor<ResultEvent>(outputDisruptor, outputDisruptor.newBarrier(), resultEventHandler);
     {
-        outputDisruptor.addGatingSequences(batchEventProcessor.getSequence());
+        inputDisruptor.addGatingSequences(workerPool.getWorkerSequences());
     }
+
+/*
+    private final ResultEventWorkHandler[] resultEventWorkHandlers = new ResultEventWorkHandler[GATEWAY_CONSUMERS_COUNT];
+    {
+        for (int i = 0; i < GATEWAY_CONSUMERS_COUNT; i++){
+            resultEventWorkHandlers[i] = new ResultEventWorkHandler();
+        }
+    }
+
+    private final WorkerPool<ResultEvent> getPool =
+            new WorkerPool<ResultEvent>(outputDisruptor,
+                    outputDisruptor.newBarrier(),
+                    new FatalExceptionHandler(),
+                    resultEventWorkHandlers);
+    {
+        outputDisruptor.addGatingSequences(getPool.getWorkerSequences());
+    }
+*/
 
     public static void main( String[] args ) throws Exception{
         new StmPublishingApp().run();
@@ -76,25 +98,27 @@ public class StmPublishingApp extends BaseApp{
     private void startWork(final long iterations) throws Exception{
         final CountDownLatch latch = new CountDownLatch(1);
         resultEventHandler.reset(latch, batchEventProcessor.getSequence().get() + ITERATIONS);
-
         RingBuffer<AccountEvent> ringBuffer = workerPool.start(WORKERS_EXECUTOR);
+        //RingBuffer<ResultEvent> ringBuffer2 = getPool.start(GATEWAY_CONSUMERS_EXECUTOR);
 
         Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
         for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
             futures[i] = GATEWAY_PUBLISHERS_EXECUTOR.submit(accountEventPublishers[i]);
         }
-        GATEWAY_CONSUMERS_EXECUTOR.submit(batchEventProcessor);
+        Future<?> future = GATEWAY_CONSUMERS_EXECUTOR.submit(batchEventProcessor);
 
         cyclicBarrier.await();
 
         for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
             futures[i].get();
         }
+        //future.get();
 
         latch.await();
-        batchEventProcessor.halt();
-
         workerPool.drainAndHalt();
+
+        //getPool.drainAndHalt();
+        batchEventProcessor.halt();
     }
 
     @Override
@@ -118,6 +142,7 @@ public class StmPublishingApp extends BaseApp{
         System.out.println( "-------------RESULT EVENT HANDLERS-------------");
         System.out.println( "Total logged results " + Stats.getLoggedResults());
         System.out.println( "Total ignored results " + Stats.getIgnoredResults());
+        System.out.println( "Not consumed results " + (Stats.getIgnoredResults() - Stats.getTransactionRollbacks()));
     }
 
 

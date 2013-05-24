@@ -44,6 +44,9 @@ public class StmApp extends BaseApp{
                     new FatalExceptionHandler(),
                     handlers);
 
+    {
+        inputDisruptor.addGatingSequences(workerPool.getWorkerSequences());
+    }
 
     public static void main( String[] args ) throws Exception{
         new StmApp().run();
