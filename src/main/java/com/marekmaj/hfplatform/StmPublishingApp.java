@@ -21,12 +21,11 @@ import static com.lmax.disruptor.RingBuffer.createMultiProducer;
 
 public class StmPublishingApp extends BaseApp{
 
-
     private final RingBuffer<ResultEvent> outputDisruptor =
             createMultiProducer(ResultEvent.RESULT_EVENT_FACTORY, OUTPUT_DISRUPTOR_SIZE, new BusySpinWaitStrategy());
 
     private final SequenceBarrier sequenceBarrier = outputDisruptor.newBarrier();
-    private final ResultEventHandler resultEventHandler = new ResultEventHandler();
+    private final ResultEventHandler resultEventHandler = new ResultEventHandler(chronicle);
     private final BatchEventProcessor<ResultEvent> batchEventProcessor = new BatchEventProcessor<ResultEvent>(outputDisruptor, sequenceBarrier, resultEventHandler);
     {
         outputDisruptor.addGatingSequences(batchEventProcessor.getSequence());
@@ -39,7 +38,7 @@ public class StmPublishingApp extends BaseApp{
         }
     }
 
-    private static final int NUM_WORKERS = 5;
+    private static final int NUM_WORKERS = 6;
 
     private final ExecutorService GATEWAY_PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
     private final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
@@ -98,6 +97,9 @@ public class StmPublishingApp extends BaseApp{
     private void startWork(final long iterations) throws Exception{
         final CountDownLatch latch = new CountDownLatch(1);
         resultEventHandler.reset(latch, batchEventProcessor.getSequence().get() + ITERATIONS);
+
+        Future<?> future = GATEWAY_CONSUMERS_EXECUTOR.submit(batchEventProcessor);
+
         RingBuffer<AccountEvent> ringBuffer = workerPool.start(WORKERS_EXECUTOR);
         //RingBuffer<ResultEvent> ringBuffer2 = getPool.start(GATEWAY_CONSUMERS_EXECUTOR);
 
@@ -105,7 +107,6 @@ public class StmPublishingApp extends BaseApp{
         for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
             futures[i] = GATEWAY_PUBLISHERS_EXECUTOR.submit(accountEventPublishers[i]);
         }
-        Future<?> future = GATEWAY_CONSUMERS_EXECUTOR.submit(batchEventProcessor);
 
         cyclicBarrier.await();
 

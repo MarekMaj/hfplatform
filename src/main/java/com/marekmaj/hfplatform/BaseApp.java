@@ -1,5 +1,6 @@
 package com.marekmaj.hfplatform;
 
+import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.RingBuffer;
 import com.marekmaj.hfplatform.event.incoming.AccountEvent;
@@ -9,15 +10,16 @@ import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
 import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.utils.Stats;
 
+import java.io.IOException;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ThreadLocalRandom;
 
 
 public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = 1024 * 64;
-    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
+    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 1024 * 16;
     protected static final int NUM_ACCOUNTS = 100;
-    protected static final long ITERATIONS = 1000L* 1000L * 1L;
+    protected static final long ITERATIONS = 1000L* 1000L * 10L;
     protected static final long WARMUP = 1000L * 1000L * 10L;
     protected static final double INITIAL_BALANCE = 100000;
 
@@ -46,6 +48,16 @@ public abstract class BaseApp {
         return new BalanceAccountCommand(accounts[ThreadLocalRandom.current().nextInt(NUM_ACCOUNTS)]);
     }
 
+    protected IndexedChronicle chronicle;
+    {
+        try {
+            this.chronicle = new IndexedChronicle("/dane/work/mgr/logs/log");
+            chronicle.useUnsafe(true); // for benchmarks
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     protected void run() throws Exception{
         System.out.println( "Starting transactions..." );
         //warmup();
@@ -53,6 +65,7 @@ public abstract class BaseApp {
         long start = System.currentTimeMillis();
         start();
         long opsPerSecond = (ITERATIONS * GATEWAY_PUBLISHERS_COUNT * 1000L) / (System.currentTimeMillis() - start);
+        chronicle.close();
         showStats(opsPerSecond);
         showStatsSpecific();
 

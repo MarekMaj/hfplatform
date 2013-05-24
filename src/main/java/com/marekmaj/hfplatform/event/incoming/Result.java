@@ -10,4 +10,12 @@ public final class Result {
         this.status = status;
         this.amount = amount;
     }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
 }

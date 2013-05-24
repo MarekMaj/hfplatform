@@ -1,6 +1,8 @@
 package com.marekmaj.hfplatform.processor;
 
 
+import com.higherfrequencytrading.chronicle.Excerpt;
+import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.lmax.disruptor.EventHandler;
 import com.marekmaj.hfplatform.event.outcoming.ResultEvent;
 import com.marekmaj.hfplatform.utils.Stats;
@@ -9,11 +11,17 @@ import java.util.concurrent.CountDownLatch;
 
 public class ResultEventHandler implements EventHandler<ResultEvent> {
 
+    final IndexedChronicle chronicle;
+
     private long committed;
     private long ignored;
     private long count;
     private CountDownLatch latch;
     private long localSequence = -1;
+
+    public ResultEventHandler(IndexedChronicle chronicle) {
+        this.chronicle = chronicle;
+    }
 
     public void reset(final CountDownLatch latch, final long expectedCount) {
         this.latch = latch;
@@ -26,7 +34,7 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             committed++;
             Stats.increaseLoggedResults();
 
-            // TODO chronicle event
+            //chronicleEvent(event);
         } else {
             ignored++;
             Stats.increaseIgnoredResults();
@@ -43,8 +51,17 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
 /*        if (endOfBatch){
             System.out.println("batch: " + sequence + " logged: " + Stats.getLoggedResults() );
         }*/
-        if (count == committed + ignored) {
+        if (count == committed) {
             latch.countDown();
         }
+    }
+
+    private void chronicleEvent(ResultEvent event) {
+        final Excerpt excerpt = chronicle.createExcerpt();
+        excerpt.startExcerpt(8 + 8 + 8);
+        excerpt.writeLong(System.nanoTime());
+        excerpt.writeLong(event.getTransactionAttemptNumber());
+        excerpt.writeDouble(event.getResult().getAmount());
+        excerpt.finish();
     }
 }
