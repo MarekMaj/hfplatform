@@ -9,6 +9,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class ResultEventHandler implements EventHandler<ResultEvent> {
 
+    private long committed;
     private long count;
     private CountDownLatch latch;
     private long localSequence = -1;
@@ -21,7 +22,7 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
     @Override
     public void onEvent(final ResultEvent event, final long sequence, final boolean endOfBatch) throws Exception {
         if (!event.isIgnoreAttempt()){
-            // increase just for check
+            committed++;
             Stats.increaseLoggedResults();
 
             // TODO chronicle event
@@ -36,8 +37,8 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             System.err.println("Expected: " + (localSequence + 1) + "found: " + sequence);
         }
 
-        System.err.println("sequence: " + sequence + " logged: " + Stats.getLoggedResults() );
-        if (count == Stats.getLoggedResults()) {
+        System.out.println("sequence: " + sequence + " logged: " + Stats.getLoggedResults() );
+        if (count == committed) {
             latch.countDown();
         }
     }
