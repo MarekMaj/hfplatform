@@ -23,7 +23,7 @@ public class StmApp extends BaseApp{
         }
     }
 
-    private static final int NUM_WORKERS = 7;
+    private static final int NUM_WORKERS = 5;
     private final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
     private final ExecutorService PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
     private final AccountEventWorkHandler[] handlers = new AccountEventWorkHandler[NUM_WORKERS];

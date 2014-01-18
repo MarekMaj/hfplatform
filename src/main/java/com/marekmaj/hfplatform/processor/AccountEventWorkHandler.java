@@ -2,7 +2,6 @@ package com.marekmaj.hfplatform.processor;
 
 import com.lmax.disruptor.WorkHandler;
 import com.marekmaj.hfplatform.event.incoming.AccountEvent;
-import com.marekmaj.hfplatform.event.incoming.Result;
 import com.marekmaj.hfplatform.service.AccountService;
 
 
@@ -22,7 +21,7 @@ public class AccountEventWorkHandler implements WorkHandler<AccountEvent> {
     @Override
     public void onEvent(final AccountEvent accountEvent) throws Exception {
         // instead handling result here, publish it directly in service
-        Result result = accountEvent.executeWith(accountService);
+        accountEvent.getAccountCommand().execute(accountService);
         counter++;
     }
 }

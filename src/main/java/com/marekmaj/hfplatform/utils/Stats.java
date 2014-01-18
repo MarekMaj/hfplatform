@@ -5,6 +5,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class Stats {
 
+    public static long[] startTimes;
+    public static long[] finishTimes;
+
     private static boolean gatherStats = true;
 
     private static final AtomicLong transactionRollbacks = new AtomicLong(0);

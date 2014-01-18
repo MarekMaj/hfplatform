@@ -5,5 +5,5 @@ import com.marekmaj.hfplatform.service.AccountService;
 
 public interface AccountCommand {
 
-    public Result execute(final AccountService accountService);
+    public void execute(final AccountService accountService);
 }

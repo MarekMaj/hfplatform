@@ -3,22 +3,35 @@ package com.marekmaj.hfplatform.event.incoming;
 
 import com.marekmaj.hfplatform.service.AccountService;
 import com.marekmaj.hfplatform.service.model.Account;
+import com.marekmaj.hfplatform.utils.WithID;
 
-public final class TransferAccountCommand implements AccountCommand {
+public final class TransferAccountCommand extends WithID implements AccountCommand {
 
     private Account from;
     private Account to;
     private double amount;
 
-    public TransferAccountCommand(final Account from, final Account to, final double amount) {
+    public TransferAccountCommand(final int eventId, final Account from, final Account to, final double amount) {
+        super(eventId);
         this.from = from;
         this.to = to;
         this.amount = amount;
     }
 
+    public Account getFrom() {
+        return from;
+    }
+
+    public Account getTo() {
+        return to;
+    }
+
+    public double getAmount() {
+        return amount;
+    }
+
     @Override
-    public Result execute(final AccountService accountService) {
-        boolean status = accountService.transfer(from, to, amount);
-        return new Result(status, 0.00);
+    public void execute(final AccountService accountService) {
+        accountService.transfer(this);
     }
 }

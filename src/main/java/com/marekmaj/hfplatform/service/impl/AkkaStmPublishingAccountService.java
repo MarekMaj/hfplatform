@@ -1,6 +1,8 @@
 package com.marekmaj.hfplatform.service.impl;
 
+import com.marekmaj.hfplatform.event.incoming.BalanceAccountCommand;
 import com.marekmaj.hfplatform.event.incoming.Result;
+import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
 import com.marekmaj.hfplatform.event.outcoming.ResultEvent;
 import com.marekmaj.hfplatform.event.outcoming.ResultEventPublisher;
 import com.marekmaj.hfplatform.service.AccountService;
@@ -20,20 +22,22 @@ public class AkkaStmPublishingAccountService implements AccountService {
     }
 
     @Override
-    public double checkBalance(Account account) {
+    public double checkBalance(BalanceAccountCommand balanceAccountCommand) {
         final ResultEventPublisher publisher = this.resultEventPublisher;
-        final double balance = account.getBalance();
+        final double balance = balanceAccountCommand.getAccount().getBalance();
         final ResultEvent resultEvent = publisher.getNextResultEvent();
+        resultEvent.setId(balanceAccountCommand.getId());
         resultEvent.setResult(new Result(true, balance));
         publisher.publishEvent(resultEvent);
         return balance;
     }
 
     @Override
-    public boolean transfer(final Account from, final Account to, final double amount) {
-        if (from == to){
+    public boolean transfer(final TransferAccountCommand transferAccountCommand) {
+        if (transferAccountCommand.getFrom() == transferAccountCommand.getTo()){
             Stats.increaseCanceled();
             final ResultEvent resultEvent = resultEventPublisher.getNextResultEvent();
+            resultEvent.setId(transferAccountCommand.getId());
             resultEvent.setResult(new Result(false, Double.NaN));
             resultEventPublisher.publishEvent(resultEvent);
             return false;
@@ -43,14 +47,15 @@ public class AkkaStmPublishingAccountService implements AccountService {
             STM.atomic(new Runnable() {
                 @Override
                 public void run() {
-                    from.decreaseBalance(amount);
-                    to.increaseBalance(amount);
+                    transferAccountCommand.getFrom().decreaseBalance(transferAccountCommand.getAmount());
+                    transferAccountCommand.getTo().increaseBalance(transferAccountCommand.getAmount());
 
                     final ResultEvent resultEvent = resultEventPublisher.getNextResultEvent();
+                    resultEvent.setId(transferAccountCommand.getId());
 
                     STM.afterRollback(new RollbackAction(resultEventPublisher, resultEvent));
 
-                    STM.afterCommit(new CommitAction(resultEventPublisher, resultEvent, amount));
+                    STM.afterCommit(new CommitAction(resultEventPublisher, resultEvent, transferAccountCommand.getAmount()));
                 }
             });
 
@@ -58,6 +63,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
         } catch (InsufficientFundsException e){
             Stats.increaseInsufficient();
             final ResultEvent resultEvent = resultEventPublisher.getNextResultEvent();
+            resultEvent.setId(transferAccountCommand.getId());
             resultEvent.setResult(new Result(false, Double.NaN));
             resultEventPublisher.publishEvent(resultEvent);
         }

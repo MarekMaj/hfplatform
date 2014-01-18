@@ -1,11 +1,10 @@
 package com.marekmaj.hfplatform.processor;
 
-
-import com.higherfrequencytrading.chronicle.Excerpt;
-import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.lmax.disruptor.EventHandler;
 import com.marekmaj.hfplatform.event.outcoming.ResultEvent;
 import com.marekmaj.hfplatform.utils.Stats;
+import net.openhft.chronicle.Excerpt;
+import net.openhft.chronicle.IndexedChronicle;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -33,8 +32,8 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
         if (!event.isIgnoreAttempt()){
             committed++;
             Stats.increaseLoggedResults();
-
             //chronicleEvent(event);
+            Stats.finishTimes[event.getId()] = System.nanoTime();
         } else {
             ignored++;
             Stats.increaseIgnoredResults();
@@ -56,12 +55,12 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
         }
     }
 
-    private void chronicleEvent(ResultEvent event) {
+/*    private void chronicleEvent(ResultEvent event) {
         final Excerpt excerpt = chronicle.createExcerpt();
         excerpt.startExcerpt(8 + 8 + 8);
         excerpt.writeLong(System.nanoTime());
         excerpt.writeLong(event.getTransactionAttemptNumber());
         excerpt.writeDouble(event.getResult().getAmount());
         excerpt.finish();
-    }
+    }*/
 }

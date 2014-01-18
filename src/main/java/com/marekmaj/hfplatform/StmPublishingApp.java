@@ -10,6 +10,9 @@ import com.marekmaj.hfplatform.processor.ResultEventHandler;
 import com.marekmaj.hfplatform.service.impl.AkkaStmPublishingAccountService;
 import com.marekmaj.hfplatform.service.model.StmAccount;
 import com.marekmaj.hfplatform.utils.Stats;
+import com.marekmaj.hfplatform.utils.WithDedicatedCpuRunnable;
+import org.HdrHistogram.Histogram;
+import org.HdrHistogram.HistogramData;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -26,7 +29,7 @@ public class StmPublishingApp extends BaseApp{
 
     private final SequenceBarrier sequenceBarrier = outputDisruptor.newBarrier();
     private final ResultEventHandler resultEventHandler = new ResultEventHandler(chronicle);
-    private final BatchEventProcessor<ResultEvent> batchEventProcessor = new BatchEventProcessor<ResultEvent>(outputDisruptor, sequenceBarrier, resultEventHandler);
+    private final BatchEventProcessor<ResultEvent> batchEventProcessor = new BatchEventProcessor<>(outputDisruptor, sequenceBarrier, resultEventHandler);
     {
         outputDisruptor.addGatingSequences(batchEventProcessor.getSequence());
     }
@@ -38,7 +41,7 @@ public class StmPublishingApp extends BaseApp{
         }
     }
 
-    private static final int NUM_WORKERS = 6;
+    private static final int NUM_WORKERS = 5;
 
     private final ExecutorService GATEWAY_PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
     private final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
@@ -91,6 +94,8 @@ public class StmPublishingApp extends BaseApp{
 
     @Override
     public void start() throws Exception {
+        Stats.startTimes = new long[ITERATIONS];
+        Stats.finishTimes = new long[ITERATIONS];
         startWork(ITERATIONS);
     }
 
@@ -98,14 +103,14 @@ public class StmPublishingApp extends BaseApp{
         final CountDownLatch latch = new CountDownLatch(1);
         resultEventHandler.reset(latch, batchEventProcessor.getSequence().get() + ITERATIONS);
 
-        Future<?> future = GATEWAY_CONSUMERS_EXECUTOR.submit(batchEventProcessor);
+        Future<?> future = GATEWAY_CONSUMERS_EXECUTOR.submit(new WithDedicatedCpuRunnable(batchEventProcessor));
 
         RingBuffer<AccountEvent> ringBuffer = workerPool.start(WORKERS_EXECUTOR);
         //RingBuffer<ResultEvent> ringBuffer2 = getPool.start(GATEWAY_CONSUMERS_EXECUTOR);
 
         Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
         for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            futures[i] = GATEWAY_PUBLISHERS_EXECUTOR.submit(accountEventPublishers[i]);
+            futures[i] = GATEWAY_PUBLISHERS_EXECUTOR.submit(new WithDedicatedCpuRunnable(accountEventPublishers[i]));
         }
 
         cyclicBarrier.await();
@@ -144,6 +149,55 @@ public class StmPublishingApp extends BaseApp{
         System.out.println( "Total logged results " + Stats.getLoggedResults());
         System.out.println( "Total ignored results " + Stats.getIgnoredResults());
         System.out.println( "Not consumed results " + (Stats.getIgnoredResults() - Stats.getTransactionRollbacks()));
+
+        System.out.println();
+        System.out.println( "-------------HISTOGRAM-------------");
+        Histogram histogram = new Histogram(1000000000, 5);
+        long min = getDiffInStats(1);
+        long max = getDiffInStats(1);
+
+        int startTimeNotSet = 0;
+        int endTimeNotSet = 0;
+        for (int i = ITERATIONS/3; i < ITERATIONS; i++) {
+            long diff = getDiffInStats(i);
+            if (Stats.finishTimes[i] == 0 ) {
+                endTimeNotSet++;
+            }
+            if (Stats.startTimes[i] == 0 ) {
+                startTimeNotSet++;
+            }
+            if (diff < min) {
+                min = diff;
+                //System.out.println("new minimum: " + min + "from: " + Stats.startTimes[i] + "to: " + Stats.finishTimes[i] + ", i: " + i);
+            } else if (diff > max) {
+                max = diff;
+                //System.out.println("new max: " + max + "from: " + Stats.startTimes[i] + "to: " + Stats.finishTimes[i] + ", i: " + i);
+            }
+        }
+        System.out.println("Start time not set: " + startTimeNotSet + ", endTimeNotSet " + endTimeNotSet);
+        System.out.println("Minimum latency: " + min);
+        System.out.println("Maximum latency: " + max);
+        System.out.println("Minimum latency: " + min);
+        for (int i = ITERATIONS/3; i < ITERATIONS; i++) {
+/*            long diff = Math.abs(Stats.finishTimes[i] - Stats.startTimes[i]) - min;
+            if (diff > 1.000) {
+                System.out.println("Wiekszy od microsekundy!! " + i + " diff: " + diff);
+            }*/
+            histogram.recordValue(getDiffInStats(i)/1000);
+        }
+
+        HistogramData data = histogram.getHistogramData();
+        System.out.println( "Max time " + data.getMaxValue());
+        System.out.println( "50 percentile " + data.getValueAtPercentile(50));
+        System.out.println( "75 percentile " + data.getValueAtPercentile(75));
+        System.out.println( "90 percentile " + data.getValueAtPercentile(90));
+        System.out.println( "95 percentile " + data.getValueAtPercentile(95));
+        System.out.println( "99 percentile " + data.getValueAtPercentile(99));
+        System.out.println( "99.9 percentile " + data.getValueAtPercentile(99.9));
+    }
+
+    private long getDiffInStats(int i) {
+        return Stats.finishTimes[i] - Stats.startTimes[i];
     }
 
 

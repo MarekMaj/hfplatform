@@ -1,6 +1,5 @@
 package com.marekmaj.hfplatform;
 
-import com.higherfrequencytrading.chronicle.impl.IndexedChronicle;
 import com.lmax.disruptor.BusySpinWaitStrategy;
 import com.lmax.disruptor.RingBuffer;
 import com.marekmaj.hfplatform.event.incoming.AccountEvent;
@@ -9,6 +8,7 @@ import com.marekmaj.hfplatform.event.incoming.BalanceAccountCommand;
 import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
 import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.utils.Stats;
+import net.openhft.chronicle.IndexedChronicle;
 
 import java.io.IOException;
 import java.util.concurrent.CyclicBarrier;
@@ -19,7 +19,7 @@ public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 1024 * 16;
     protected static final int NUM_ACCOUNTS = 100;
-    protected static final long ITERATIONS = 1000L* 1000L * 10L;
+    protected static final int ITERATIONS = 1000* 1000 * 10;
     protected static final long WARMUP = 1000L * 1000L * 10L;
     protected static final double INITIAL_BALANCE = 100000;
 
@@ -38,6 +38,7 @@ public abstract class BaseApp {
     protected final AccountEventPublisher[] accountEventPublishers = new AccountEventPublisher[GATEWAY_PUBLISHERS_COUNT];
 
 
+/*
     protected TransferAccountCommand createRandomTransferAccountCommand(){
         return new TransferAccountCommand(accounts[ThreadLocalRandom.current().nextInt(NUM_ACCOUNTS)],
                 accounts[ThreadLocalRandom.current().nextInt(NUM_ACCOUNTS)],
@@ -47,12 +48,13 @@ public abstract class BaseApp {
     protected BalanceAccountCommand createRandomBalanceAccountCommand(){
         return new BalanceAccountCommand(accounts[ThreadLocalRandom.current().nextInt(NUM_ACCOUNTS)]);
     }
+*/
 
     protected IndexedChronicle chronicle;
     {
         try {
             this.chronicle = new IndexedChronicle("/dane/work/mgr/logs/log");
-            chronicle.useUnsafe(true); // for benchmarks
+            chronicle.config().useUnsafe(true); // for benchmarks
         } catch (IOException e) {
             e.printStackTrace();
         }

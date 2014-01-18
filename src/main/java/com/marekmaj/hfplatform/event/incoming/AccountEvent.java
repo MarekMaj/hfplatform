@@ -2,7 +2,6 @@ package com.marekmaj.hfplatform.event.incoming;
 
 
 import com.lmax.disruptor.EventFactory;
-import com.marekmaj.hfplatform.service.AccountService;
 
 public final class AccountEvent {
 
@@ -14,10 +13,6 @@ public final class AccountEvent {
 
     public void setAccountCommand(AccountCommand accountCommand) {
         this.accountCommand = accountCommand;
-    }
-
-    public Result executeWith(final AccountService accountService){
-        return accountCommand.execute(accountService);
     }
 
     public final static EventFactory<AccountEvent> ACCOUNT_EVENT_FACTORY = new EventFactory<AccountEvent>() {

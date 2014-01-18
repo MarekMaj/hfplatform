@@ -1,6 +1,8 @@
 package com.marekmaj.hfplatform.service.impl;
 
 
+import com.marekmaj.hfplatform.event.incoming.BalanceAccountCommand;
+import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
 import com.marekmaj.hfplatform.service.AccountService;
 import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.service.model.InsufficientFundsException;
@@ -12,13 +14,13 @@ import scala.concurrent.stm.japi.STM;
 public class AkkaStmAccountService implements AccountService {
 
     @Override
-    public double checkBalance(Account account) {
-        return account.getBalance();
+    public double checkBalance(BalanceAccountCommand balanceAccountCommand) {
+        return balanceAccountCommand.getAccount().getBalance();
     }
 
     @Override
-    public boolean transfer(final Account from, final Account to, final double amount) {
-        if (from == to){
+    public boolean transfer(final TransferAccountCommand transferAccountCommand) {
+        if (transferAccountCommand.getFrom() == transferAccountCommand.getTo()){
             Stats.increaseCanceled();
             return false;
         }
@@ -27,8 +29,8 @@ public class AkkaStmAccountService implements AccountService {
             STM.atomic(new Runnable() {
                 @Override
                 public void run() {
-                    from.decreaseBalance(amount);
-                    to.increaseBalance(amount);
+                    transferAccountCommand.getFrom().decreaseBalance(transferAccountCommand.getAmount());
+                    transferAccountCommand.getTo().increaseBalance(transferAccountCommand.getAmount());
 
                     STM.afterRollback(new Runnable() {
                         @Override
