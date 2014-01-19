@@ -13,7 +13,7 @@ public class StmApp extends StmBaseApp {
     private final AccountEventWorkHandler[] accountEventWorkHandlers = new AccountEventWorkHandler[NUM_WORKERS];
     {
         for (int i = 0; i < NUM_WORKERS; i++){
-            accountEventWorkHandlers[i] = new AccountEventWorkHandler(new AkkaStmAccountService());  // TODO this will need something more
+            accountEventWorkHandlers[i] = new AccountEventWorkHandler(new AkkaStmAccountService());
         }
     }
     private final WorkerPool<AccountEvent> workerPool = getAccountEventWorkerPool(accountEventWorkHandlers);

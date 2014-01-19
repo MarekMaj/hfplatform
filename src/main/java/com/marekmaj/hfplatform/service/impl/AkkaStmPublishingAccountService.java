@@ -1,7 +1,6 @@
 package com.marekmaj.hfplatform.service.impl;
 
 import com.marekmaj.hfplatform.event.incoming.BalanceAccountCommand;
-import com.marekmaj.hfplatform.event.incoming.Result;
 import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
 import com.marekmaj.hfplatform.event.outcoming.ResultEvent;
 import com.marekmaj.hfplatform.event.outcoming.ResultEventPublisher;
@@ -23,7 +22,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
     @Override
     public double checkBalance(BalanceAccountCommand balanceAccountCommand) {
         final double balance = balanceAccountCommand.getAccount().getBalance();
-        resultEventPublisher.getNextResultEventAndPublish(new Result(true, balance), balanceAccountCommand.getId());
+        resultEventPublisher.getNextResultEventAndPublishSuccess(balanceAccountCommand.getId(), balance);
         return balance;
     }
 
@@ -31,7 +30,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
     public boolean transfer(final TransferAccountCommand transferAccountCommand) {
         if (transferAccountCommand.getFrom() == transferAccountCommand.getTo()){
             Stats.increaseCanceled();
-            resultEventPublisher.getNextResultEventAndPublish(new Result(false, Double.NaN), transferAccountCommand.getId());
+            resultEventPublisher.getNextResultEventAndPublishFailed(transferAccountCommand.getId());
             return false;
         }
 
@@ -43,7 +42,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
                     transferAccountCommand.getTo().increaseBalance(transferAccountCommand.getAmount());
 
                     final ResultEvent resultEvent = resultEventPublisher.getNextResultEvent();
-                    resultEvent.setId(transferAccountCommand.getId());
+                    resultEvent.getResult().setId(transferAccountCommand.getId());
 
                     STM.afterRollback(new RollbackAction(resultEventPublisher, resultEvent));
 
@@ -54,7 +53,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
             return true;
         } catch (InsufficientFundsException e){
             Stats.increaseInsufficient();
-            resultEventPublisher.getNextResultEventAndPublish(new Result(false, Double.NaN), transferAccountCommand.getId());
+            resultEventPublisher.getNextResultEventAndPublishFailed(transferAccountCommand.getId());
         }
 
         return false;
@@ -94,7 +93,8 @@ class CommitAction implements Runnable{
 
     @Override
     public void run() {
-        resultEvent.setResult(new Result(true, amount));
+        resultEvent.getResult().setStatus(true);
+        resultEvent.getResult().setAmount(amount);
         resultEventPublisher.publishEvent(resultEvent);
         Stats.increaseCommits();
     }

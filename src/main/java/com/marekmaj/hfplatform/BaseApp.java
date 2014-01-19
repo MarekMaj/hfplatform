@@ -38,7 +38,7 @@ public abstract class BaseApp {
     protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(GATEWAY_PUBLISHERS_COUNT + 1);
 
     protected final RingBuffer<AccountEvent> inputDisruptor =
-            RingBuffer.createSingleProducer(AccountEvent.ACCOUNT_EVENT_FACTORY,
+            RingBuffer.createSingleProducer(AccountEvent.TRANSFER_EVENT_FACTORY,
                     INPUT_DISRUPTOR_SIZE,
                     new BusySpinWaitStrategy());  // TODO bound threads to cores
 

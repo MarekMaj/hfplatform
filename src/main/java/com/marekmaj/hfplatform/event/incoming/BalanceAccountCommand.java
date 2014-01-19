@@ -7,10 +7,13 @@ import com.marekmaj.hfplatform.utils.WithID;
 
 public final class BalanceAccountCommand extends WithID implements AccountCommand {
 
-    private final Account account;
+    private Account account;
 
-    public BalanceAccountCommand(int id, final Account account) {
+    public BalanceAccountCommand(int id) {
         super(id);
+    }
+
+    public void setAccount(Account account) {
         this.account = account;
     }
 

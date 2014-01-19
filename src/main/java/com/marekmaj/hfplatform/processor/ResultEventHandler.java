@@ -33,7 +33,7 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             committed++;
             Stats.increaseLoggedResults();
             //chronicleEvent(event);
-            Stats.finishTimes[event.getId()] = System.nanoTime();
+            Stats.finishTimes[event.getResult().getId()] = System.nanoTime();
         } else {
             ignored++;
             Stats.increaseIgnoredResults();

@@ -2,7 +2,6 @@ package com.marekmaj.hfplatform.event.outcoming;
 
 
 import com.lmax.disruptor.RingBuffer;
-import com.marekmaj.hfplatform.event.incoming.Result;
 import com.marekmaj.hfplatform.utils.Stats;
 import net.jcip.annotations.NotThreadSafe;
 
@@ -40,10 +39,19 @@ public final class ResultEventPublisher {
         //published = true;
     }
 
-    public void getNextResultEventAndPublish(final Result result, final int id) {
+    public void getNextResultEventAndPublishSuccess(final int id, final double amount) {
         final ResultEvent resultEvent = getNextResultEvent();
-        resultEvent.setId(id);
-        resultEvent.setResult(result);
+        resultEvent.getResult().setId(id);
+        resultEvent.getResult().setAmount(amount);
+        resultEvent.getResult().setStatus(true);
+        publishEvent(resultEvent);
+    }
+
+    public void getNextResultEventAndPublishFailed(final int id) {
+        final ResultEvent resultEvent = getNextResultEvent();
+        resultEvent.getResult().setId(id);
+        resultEvent.getResult().setAmount(Double.NaN);
+        resultEvent.getResult().setStatus(false);
         publishEvent(resultEvent);
     }
 }

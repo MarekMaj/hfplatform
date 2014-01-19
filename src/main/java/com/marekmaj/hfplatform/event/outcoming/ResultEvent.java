@@ -2,18 +2,16 @@ package com.marekmaj.hfplatform.event.outcoming;
 
 
 import com.lmax.disruptor.EventFactory;
-import com.marekmaj.hfplatform.event.incoming.Result;
-import com.marekmaj.hfplatform.utils.WithID;
 
-public final class ResultEvent extends WithID {
+public final class ResultEvent {
 
     private Result result;
     private boolean ignoreAttempt = false;
     // do not need this in fact, ordering will happen in outputDisruptor:
     private long transactionAttemptNumber;
 
-    public ResultEvent(int id) {
-        super(id);
+    public ResultEvent(Result result) {
+        this.result = result;
     }
 
     public Result getResult() {
@@ -42,7 +40,7 @@ public final class ResultEvent extends WithID {
 
     public final static EventFactory<ResultEvent> RESULT_EVENT_FACTORY = new EventFactory<ResultEvent>() {
         public ResultEvent newInstance() {
-            return new ResultEvent(-1);
+            return new ResultEvent(new Result(-1));
         }
     };
 }

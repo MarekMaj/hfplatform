@@ -7,17 +7,23 @@ public final class AccountEvent {
 
     private AccountCommand accountCommand;
 
+    public AccountEvent(AccountCommand accountCommand) {
+        this.accountCommand = accountCommand;
+    }
+
     public AccountCommand getAccountCommand() {
         return accountCommand;
     }
 
-    public void setAccountCommand(AccountCommand accountCommand) {
-        this.accountCommand = accountCommand;
-    }
-
-    public final static EventFactory<AccountEvent> ACCOUNT_EVENT_FACTORY = new EventFactory<AccountEvent>() {
+    public final static EventFactory<AccountEvent> TRANSFER_EVENT_FACTORY = new EventFactory<AccountEvent>() {
         public AccountEvent newInstance() {
-            return new AccountEvent();
+            return new AccountEvent(new TransferAccountCommand(-1));
+        }
+    };
+
+    public final static EventFactory<AccountEvent> BALANCE_EVENT_FACTORY = new EventFactory<AccountEvent>() {
+        public AccountEvent newInstance() {
+            return new AccountEvent(new BalanceAccountCommand(-1));
         }
     };
 }

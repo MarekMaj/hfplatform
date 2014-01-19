@@ -34,7 +34,7 @@ public final class AccountEventPublisher implements Runnable {
             for (int i = 0; i < iterations; i++) {
                 long sequence = ringBuffer.next();
                 AccountEvent event = ringBuffer.get(sequence);
-                event.setAccountCommand(createRandomTransferAccountCommand(i));
+                generateAccountCommand(i, event.getAccountCommand());
                 Stats.startTimes[i] = System.nanoTime();
                 ringBuffer.publish(sequence);
             }
@@ -44,15 +44,20 @@ public final class AccountEventPublisher implements Runnable {
         }
     }
 
-    // TODO wyrzuc te randomy
-    private TransferAccountCommand createRandomTransferAccountCommand(int eventId){
-        return new TransferAccountCommand(eventId, accounts[ThreadLocalRandom.current().nextInt(accounts.length)],
-                accounts[ThreadLocalRandom.current().nextInt(accounts.length)],
-                ThreadLocalRandom.current().nextDouble(20));
+    private void generateAccountCommand(int i, AccountCommand accountCommand) {
+        if (accountCommand instanceof BalanceAccountCommand) {
+            ((BalanceAccountCommand) accountCommand).setAccount(getRandomAccount());
+            ((BalanceAccountCommand) accountCommand).setId(i);
+        } else {
+            ((TransferAccountCommand) accountCommand).setFrom(getRandomAccount());
+            ((TransferAccountCommand) accountCommand).setTo(getRandomAccount());
+            ((TransferAccountCommand) accountCommand).setAmount(ThreadLocalRandom.current().nextDouble(20));
+            ((TransferAccountCommand) accountCommand).setId(i);
+        }
     }
 
-    private BalanceAccountCommand createRandomBalanceAccountCommand(int eventId){
-        return new BalanceAccountCommand(eventId, accounts[ThreadLocalRandom.current().nextInt(accounts.length)]);
+    private Account getRandomAccount() {
+        return accounts[ThreadLocalRandom.current().nextInt(accounts.length)];
     }
 
 }

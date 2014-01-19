@@ -11,11 +11,8 @@ public final class TransferAccountCommand extends WithID implements AccountComma
     private Account to;
     private double amount;
 
-    public TransferAccountCommand(final int eventId, final Account from, final Account to, final double amount) {
-        super(eventId);
-        this.from = from;
-        this.to = to;
-        this.amount = amount;
+    public TransferAccountCommand(final int id) {
+        super(id);
     }
 
     public Account getFrom() {
@@ -28,6 +25,18 @@ public final class TransferAccountCommand extends WithID implements AccountComma
 
     public double getAmount() {
         return amount;
+    }
+
+    public void setFrom(Account from) {
+        this.from = from;
+    }
+
+    public void setTo(Account to) {
+        this.to = to;
+    }
+
+    public void setAmount(double amount) {
+        this.amount = amount;
     }
 
     @Override
