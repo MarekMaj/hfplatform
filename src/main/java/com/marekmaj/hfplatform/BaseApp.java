@@ -1,11 +1,12 @@
 package com.marekmaj.hfplatform;
 
 import com.lmax.disruptor.BusySpinWaitStrategy;
+import com.lmax.disruptor.FatalExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
+import com.lmax.disruptor.WorkerPool;
 import com.marekmaj.hfplatform.event.incoming.AccountEvent;
 import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
-import com.marekmaj.hfplatform.event.incoming.BalanceAccountCommand;
-import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
+import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
 import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.utils.Stats;
 import net.openhft.chronicle.IndexedChronicle;
@@ -16,10 +17,10 @@ import java.util.concurrent.ThreadLocalRandom;
 
 
 public abstract class BaseApp {
-    protected static final int INPUT_DISRUPTOR_SIZE = 1024 * 64;
-    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 1024 * 16;
-    protected static final int NUM_ACCOUNTS = 100;
-    protected static final int ITERATIONS = 1000* 1000 * 10;
+    protected static final int INPUT_DISRUPTOR_SIZE = 256;
+    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 1024 * 32;        // TODO cos nie tak - brak konsumera ??
+    protected static final int NUM_ACCOUNTS = 10000;
+    protected static final int ITERATIONS = 1000* 1000 * 30;
     protected static final long WARMUP = 1000L * 1000L * 10L;
     protected static final double INITIAL_BALANCE = 100000;
 
@@ -35,20 +36,12 @@ public abstract class BaseApp {
                     INPUT_DISRUPTOR_SIZE,
                     new BusySpinWaitStrategy());  // TODO bound threads to cores
 
+    // TODO GATEWAY_PUBLISHERS_COUNT will always be one ?
     protected final AccountEventPublisher[] accountEventPublishers = new AccountEventPublisher[GATEWAY_PUBLISHERS_COUNT];
 
 
-/*
-    protected TransferAccountCommand createRandomTransferAccountCommand(){
-        return new TransferAccountCommand(accounts[ThreadLocalRandom.current().nextInt(NUM_ACCOUNTS)],
-                accounts[ThreadLocalRandom.current().nextInt(NUM_ACCOUNTS)],
-                ThreadLocalRandom.current().nextDouble(20));
-    }
+    // TODO wybierac ktora transakcje transfery - balancy to w factory inputDisruptor
 
-    protected BalanceAccountCommand createRandomBalanceAccountCommand(){
-        return new BalanceAccountCommand(accounts[ThreadLocalRandom.current().nextInt(NUM_ACCOUNTS)]);
-    }
-*/
 
     protected IndexedChronicle chronicle;
     {
@@ -60,9 +53,20 @@ public abstract class BaseApp {
         }
     }
 
+    protected WorkerPool<AccountEvent> getAccountEventWorkerPool(AccountEventWorkHandler[] accountEventWorkHandlers) {
+        WorkerPool<AccountEvent> workerPool = new WorkerPool<>(inputDisruptor,
+                inputDisruptor.newBarrier(),
+                new FatalExceptionHandler(),
+                accountEventWorkHandlers);
+        if (accountEventWorkHandlers.length > 1) {
+            inputDisruptor.addGatingSequences(workerPool.getWorkerSequences());
+        }
+        return workerPool;
+    }
+
     protected void run() throws Exception{
         System.out.println( "Starting transactions..." );
-        //warmup();
+        //warmup();  // TODO
         //System.gc();
         long start = System.currentTimeMillis();
         start();

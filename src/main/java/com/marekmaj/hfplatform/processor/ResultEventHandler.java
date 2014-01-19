@@ -39,6 +39,7 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             Stats.increaseIgnoredResults();
         }
 
+        // TODO po co to
         if (localSequence + 1 == sequence) {
             localSequence = sequence;
         }

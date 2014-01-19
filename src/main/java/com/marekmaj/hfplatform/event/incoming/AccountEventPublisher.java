@@ -29,6 +29,8 @@ public final class AccountEventPublisher implements Runnable {
         try {
             cyclicBarrier.await();
 
+            // TODO spróbować generowac event co jakiś czas np. 100ns
+            // TODO przemyslec jak zmienil by sie model gdyby mierzyc start time przed ringBuffer.gets
             for (int i = 0; i < iterations; i++) {
                 long sequence = ringBuffer.next();
                 AccountEvent event = ringBuffer.get(sequence);
