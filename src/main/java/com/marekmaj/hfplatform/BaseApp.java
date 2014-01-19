@@ -19,9 +19,9 @@ import java.util.concurrent.Executors;
 
 public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = 256;
-    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 1024 * 32;        // TODO cos nie tak - brak konsumera ??
+    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 1024 * 16;        // TODO cos nie tak - brak konsumera ??
     protected static final int NUM_ACCOUNTS = 10000;
-    protected static final int ITERATIONS = 1000* 1000 * 30;
+    protected static final int ITERATIONS = 1000* 1000 * 10;
     protected static final long WARMUP = 1000L * 1000L * 10L;
     protected static final double INITIAL_BALANCE = 100000;
 

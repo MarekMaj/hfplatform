@@ -3,6 +3,9 @@ package com.marekmaj.hfplatform;
 import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
 import com.marekmaj.hfplatform.service.model.SingleThreadedAccount;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public abstract class SingleThreadBaseApp extends BaseApp {
 
     {
@@ -16,4 +19,7 @@ public abstract class SingleThreadBaseApp extends BaseApp {
             accountEventPublishers[i] = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
         }
     }
+
+    protected static final int NUM_WORKERS = 1;
+    protected final ExecutorService WORKER_EXECUTOR = Executors.newSingleThreadExecutor();
 }

@@ -32,9 +32,6 @@ public class StmPublishingApp extends StmBaseApp {
         outputDisruptor.addGatingSequences(batchEventProcessor.getSequence());
     }
 
-    private static final int NUM_WORKERS = 6;
-
-    private final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
     private final ExecutorService GATEWAY_CONSUMERS_EXECUTOR = Executors.newSingleThreadExecutor();
 
     private final AccountEventWorkHandler[] accountEventWorkHandlers = new AccountEventWorkHandler[NUM_WORKERS];
@@ -83,7 +80,7 @@ public class StmPublishingApp extends StmBaseApp {
 
         Future<?> future = GATEWAY_CONSUMERS_EXECUTOR.submit(new WithDedicatedCpuRunnable(batchEventProcessor));
 
-        RingBuffer<AccountEvent> ringBuffer = workerPool.start(WORKERS_EXECUTOR);
+        workerPool.start(WORKERS_EXECUTOR);
         //RingBuffer<ResultEvent> ringBuffer2 = getPool.start(GATEWAY_CONSUMERS_EXECUTOR);
 
         Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
