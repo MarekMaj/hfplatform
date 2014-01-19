@@ -34,7 +34,6 @@ public class StmPublishingApp extends StmBaseApp {
 
     private static final int NUM_WORKERS = 6;
 
-    private final ExecutorService GATEWAY_PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
     private final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
     private final ExecutorService GATEWAY_CONSUMERS_EXECUTOR = Executors.newSingleThreadExecutor();
 

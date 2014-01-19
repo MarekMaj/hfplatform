@@ -13,7 +13,8 @@ import net.openhft.chronicle.IndexedChronicle;
 
 import java.io.IOException;
 import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public abstract class BaseApp {
@@ -37,6 +38,7 @@ public abstract class BaseApp {
                     new BusySpinWaitStrategy());  // TODO bound threads to cores
 
     // TODO GATEWAY_PUBLISHERS_COUNT will always be one ?
+    protected final ExecutorService GATEWAY_PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
     protected final AccountEventPublisher[] accountEventPublishers = new AccountEventPublisher[GATEWAY_PUBLISHERS_COUNT];
 
 

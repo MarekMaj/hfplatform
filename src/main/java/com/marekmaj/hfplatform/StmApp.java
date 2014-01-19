@@ -1,6 +1,5 @@
 package com.marekmaj.hfplatform;
 
-import com.lmax.disruptor.FatalExceptionHandler;
 import com.lmax.disruptor.RingBuffer;
 import com.lmax.disruptor.WorkerPool;
 import com.marekmaj.hfplatform.event.incoming.AccountEvent;
@@ -16,7 +15,6 @@ public class StmApp extends StmBaseApp {
 
     private static final int NUM_WORKERS = 5;
     private final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
-    private final ExecutorService PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
     private final AccountEventWorkHandler[] accountEventWorkHandlers = new AccountEventWorkHandler[NUM_WORKERS];
     {
         for (int i = 0; i < NUM_WORKERS; i++){
@@ -53,7 +51,7 @@ public class StmApp extends StmBaseApp {
 
         Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
         for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            futures[i] = PUBLISHERS_EXECUTOR.submit(accountEventPublishers[i]);
+            futures[i] = GATEWAY_PUBLISHERS_EXECUTOR.submit(accountEventPublishers[i]);
         }
 
         cyclicBarrier.await();
