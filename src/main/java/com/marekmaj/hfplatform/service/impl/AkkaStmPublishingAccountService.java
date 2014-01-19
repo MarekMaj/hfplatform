@@ -74,7 +74,7 @@ class RollbackAction implements Runnable{
     @Override
     public void run() {
         resultEvent.setIgnoreAttempt(true);
-        resultEventPublisher.publishEvent(resultEvent);
+        resultEventPublisher.publishEvent();
         Stats.increaseRollbacks();
     }
 }
@@ -95,7 +95,7 @@ class CommitAction implements Runnable{
     public void run() {
         resultEvent.getResult().setStatus(true);
         resultEvent.getResult().setAmount(amount);
-        resultEventPublisher.publishEvent(resultEvent);
+        resultEventPublisher.publishEvent();
         Stats.increaseCommits();
     }
 }

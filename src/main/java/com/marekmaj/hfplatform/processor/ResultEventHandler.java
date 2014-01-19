@@ -47,10 +47,6 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             System.err.println("Expected: " + (localSequence + 1) + "found: " + sequence);
         }
 
-        //System.out.println("sequence: " + sequence + " logged: " + Stats.getLoggedResults() );
-/*        if (endOfBatch){
-            System.out.println("batch: " + sequence + " logged: " + Stats.getLoggedResults() );
-        }*/
         if (count == committed) {
             latch.countDown();
         }

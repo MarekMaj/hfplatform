@@ -21,10 +21,10 @@ import java.util.concurrent.Executors;
 
 public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = 256;                      // to determinuje przepustowość
-    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 1024 * 32;        // TODO cos nie tak - brak konsumera ??
+    protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 10000;
-    protected static final int ITERATIONS = 1000* 1000 * 30;
-    protected static final long WARMUP = 1000L * 1000L * 10L;
+    protected static final int ITERATIONS = 1000* 1000 * 110;
+    protected static final int WARMUP = 1000 * 1000 * 10;
     protected static final double INITIAL_BALANCE = 100000;
 
     protected static final int GATEWAY_PUBLISHERS_COUNT = 1;
@@ -45,9 +45,6 @@ public abstract class BaseApp {
     // TODO GATEWAY_PUBLISHERS_COUNT will always be one ?
     protected final ExecutorService GATEWAY_PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
     protected final AccountEventPublisher[] accountEventPublishers = new AccountEventPublisher[GATEWAY_PUBLISHERS_COUNT];
-
-
-    // TODO wybierac ktora transakcje transfery - balancy to w factory inputDisruptor
 
 
     protected IndexedChronicle chronicle;
@@ -107,7 +104,7 @@ public abstract class BaseApp {
 
         int startTimeNotSet = 0;
         int endTimeNotSet = 0;
-        for (int i = ITERATIONS/3; i < ITERATIONS; i++) {
+        for (int i = WARMUP; i < ITERATIONS; i++) {
             long diff = getDiffInStats(i);
             if (Stats.finishTimes[i] == 0 ) {
                 endTimeNotSet++;
@@ -128,7 +125,7 @@ public abstract class BaseApp {
         System.out.println();
         System.out.println( "-------------HISTOGRAM[micro s]-------------");
         Histogram histogram = new Histogram(1000000, 5);
-        for (int i = ITERATIONS/3; i < ITERATIONS; i++) {
+        for (int i = WARMUP; i < ITERATIONS; i++) {
             histogram.recordValue(getDiffInStats(i)/1000);
         }
 

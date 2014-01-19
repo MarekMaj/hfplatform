@@ -8,7 +8,7 @@ import com.marekmaj.hfplatform.service.AccountService;
 public class AccountEventWorkHandler implements WorkHandler<AccountEvent> {
 
     private final AccountService accountService;
-    private Long counter = 0L;
+    private long counter = 0L;
 
     public AccountEventWorkHandler(AccountService accountService) {
         this.accountService = accountService;

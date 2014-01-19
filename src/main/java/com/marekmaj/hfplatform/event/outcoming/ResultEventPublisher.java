@@ -9,34 +9,23 @@ import net.jcip.annotations.NotThreadSafe;
 public final class ResultEventPublisher {
 
     private final RingBuffer<ResultEvent> ringBuffer;
-    public boolean published = true;
-    //private ResultEvent resultEvent;
+    private long currentSequenceNumber = -1;
 
     public ResultEventPublisher(RingBuffer<ResultEvent> ringBuffer) {
         this.ringBuffer = ringBuffer;
     }
 
     public ResultEvent getNextResultEvent(){
-/*        if (!published){
-            System.out.println("NOT PUBLISHED ");
-        }*/
-        final long currentSequenceNumber = ringBuffer.next();
+        currentSequenceNumber = ringBuffer.next();
         ResultEvent resultEvent = ringBuffer.get(currentSequenceNumber);
-        resultEvent.setTransactionAttemptNumber(currentSequenceNumber);
-        //System.out.println("getting " + currentSequenceNumber);
-        //published = false;
-        //this.resultEvent = resultEvent;
+        resultEvent.setIgnoreAttempt(false);
         return resultEvent;
     }
 
-    public void publishEvent(final ResultEvent resultEvent){
+    public void publishEvent(){
         Stats.increaseReadyToPublishResults();
-        ringBuffer.publish(resultEvent.getTransactionAttemptNumber());
+        ringBuffer.publish(currentSequenceNumber);
         Stats.increasePublishedResults();
-/*        if (this.resultEvent != resultEvent ){
-            System.out.println("Expected to be published " + this.resultEvent);
-        }*/
-        //published = true;
     }
 
     public void getNextResultEventAndPublishSuccess(final int id, final double amount) {
@@ -44,7 +33,7 @@ public final class ResultEventPublisher {
         resultEvent.getResult().setId(id);
         resultEvent.getResult().setAmount(amount);
         resultEvent.getResult().setStatus(true);
-        publishEvent(resultEvent);
+        publishEvent();
     }
 
     public void getNextResultEventAndPublishFailed(final int id) {
@@ -52,6 +41,6 @@ public final class ResultEventPublisher {
         resultEvent.getResult().setId(id);
         resultEvent.getResult().setAmount(Double.NaN);
         resultEvent.getResult().setStatus(false);
-        publishEvent(resultEvent);
+        publishEvent();
     }
 }
