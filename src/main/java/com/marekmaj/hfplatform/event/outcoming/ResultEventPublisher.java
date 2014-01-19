@@ -2,6 +2,7 @@ package com.marekmaj.hfplatform.event.outcoming;
 
 
 import com.lmax.disruptor.RingBuffer;
+import com.marekmaj.hfplatform.event.incoming.Result;
 import com.marekmaj.hfplatform.utils.Stats;
 import net.jcip.annotations.NotThreadSafe;
 
@@ -10,7 +11,7 @@ public final class ResultEventPublisher {
 
     private final RingBuffer<ResultEvent> ringBuffer;
     public boolean published = true;
-    private ResultEvent resultEvent;
+    //private ResultEvent resultEvent;
 
     public ResultEventPublisher(RingBuffer<ResultEvent> ringBuffer) {
         this.ringBuffer = ringBuffer;
@@ -39,4 +40,10 @@ public final class ResultEventPublisher {
         //published = true;
     }
 
+    public void getNextResultEventAndPublish(final Result result, final int id) {
+        final ResultEvent resultEvent = getNextResultEvent();
+        resultEvent.setId(id);
+        resultEvent.setResult(result);
+        publishEvent(resultEvent);
+    }
 }

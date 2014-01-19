@@ -20,6 +20,5 @@ public abstract class SingleThreadBaseApp extends BaseApp {
         }
     }
 
-    protected static final int NUM_WORKERS = 1;
     protected final ExecutorService WORKER_EXECUTOR = Executors.newSingleThreadExecutor();
 }

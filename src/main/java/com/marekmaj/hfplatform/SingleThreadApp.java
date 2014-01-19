@@ -4,21 +4,14 @@ package com.marekmaj.hfplatform;
 import com.lmax.disruptor.WorkerPool;
 import com.marekmaj.hfplatform.event.incoming.AccountEvent;
 import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
-import com.marekmaj.hfplatform.service.AccountService;
 import com.marekmaj.hfplatform.service.impl.SingleThreadedAccountService;
 
 import java.util.concurrent.Future;
 
 public class SingleThreadApp extends SingleThreadBaseApp {
 
-    private final AccountService accountService = new SingleThreadedAccountService();
-    private final AccountEventWorkHandler[] accountEventWorkHandlers = new AccountEventWorkHandler[NUM_WORKERS];
-    {
-        for (int i = 0; i < NUM_WORKERS; i++){
-            accountEventWorkHandlers[i] = new AccountEventWorkHandler(accountService);  // TODO this will need something more
-        }
-    }
-    private final WorkerPool<AccountEvent> workerPool = getAccountEventWorkerPool(accountEventWorkHandlers);
+    private final AccountEventWorkHandler accountEventWorkHandler = new AccountEventWorkHandler(new SingleThreadedAccountService());
+    private final WorkerPool<AccountEvent> workerPool = getAccountEventWorkerPool(accountEventWorkHandler);
 
     public static void main( String[] args ) throws Exception{
         new SingleThreadApp().run();
@@ -53,8 +46,6 @@ public class SingleThreadApp extends SingleThreadBaseApp {
 
     @Override
     protected void showStatsSpecific() {
-        for (AccountEventWorkHandler handler : accountEventWorkHandlers){
-            System.out.println( "Total ops for handler " + handler.getCounter());
-        }
+        System.out.println( "Total ops for handler " + accountEventWorkHandler.getCounter());
     }
 }

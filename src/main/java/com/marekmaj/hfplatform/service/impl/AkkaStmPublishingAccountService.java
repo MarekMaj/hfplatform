@@ -6,7 +6,6 @@ import com.marekmaj.hfplatform.event.incoming.TransferAccountCommand;
 import com.marekmaj.hfplatform.event.outcoming.ResultEvent;
 import com.marekmaj.hfplatform.event.outcoming.ResultEventPublisher;
 import com.marekmaj.hfplatform.service.AccountService;
-import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.service.model.InsufficientFundsException;
 import com.marekmaj.hfplatform.utils.Stats;
 import net.jcip.annotations.NotThreadSafe;
@@ -23,12 +22,8 @@ public class AkkaStmPublishingAccountService implements AccountService {
 
     @Override
     public double checkBalance(BalanceAccountCommand balanceAccountCommand) {
-        final ResultEventPublisher publisher = this.resultEventPublisher;
         final double balance = balanceAccountCommand.getAccount().getBalance();
-        final ResultEvent resultEvent = publisher.getNextResultEvent();
-        resultEvent.setId(balanceAccountCommand.getId());
-        resultEvent.setResult(new Result(true, balance));
-        publisher.publishEvent(resultEvent);
+        resultEventPublisher.getNextResultEventAndPublish(new Result(true, balance), balanceAccountCommand.getId());
         return balance;
     }
 
@@ -36,10 +31,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
     public boolean transfer(final TransferAccountCommand transferAccountCommand) {
         if (transferAccountCommand.getFrom() == transferAccountCommand.getTo()){
             Stats.increaseCanceled();
-            final ResultEvent resultEvent = resultEventPublisher.getNextResultEvent();
-            resultEvent.setId(transferAccountCommand.getId());
-            resultEvent.setResult(new Result(false, Double.NaN));
-            resultEventPublisher.publishEvent(resultEvent);
+            resultEventPublisher.getNextResultEventAndPublish(new Result(false, Double.NaN), transferAccountCommand.getId());
             return false;
         }
 
@@ -62,10 +54,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
             return true;
         } catch (InsufficientFundsException e){
             Stats.increaseInsufficient();
-            final ResultEvent resultEvent = resultEventPublisher.getNextResultEvent();
-            resultEvent.setId(transferAccountCommand.getId());
-            resultEvent.setResult(new Result(false, Double.NaN));
-            resultEventPublisher.publishEvent(resultEvent);
+            resultEventPublisher.getNextResultEventAndPublish(new Result(false, Double.NaN), transferAccountCommand.getId());
         }
 
         return false;
