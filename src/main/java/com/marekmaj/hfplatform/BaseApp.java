@@ -23,13 +23,12 @@ public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = 256;                      // to determinuje przepustowość
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 10000;
-    protected static final int ITERATIONS = 1000* 1000 * 130;
+    protected static final int ITERATIONS = 1000* 1000 * 60;
     protected static final int WARMUP = 1000 * 1000 * 30;
     protected static final double INITIAL_BALANCE = 100000;
 
     {
-        Stats.startTimes = new long[ITERATIONS];
-        Stats.finishTimes = new long[ITERATIONS];
+        Stats.latencies = new long[ITERATIONS];
     }
     protected Account[] accounts;
 
@@ -81,7 +80,7 @@ public abstract class BaseApp {
     }
 
     private long getDiffInStats(int i) {
-        return Stats.finishTimes[i] - Stats.startTimes[i];
+        return Stats.latencies[i];
     }
 
     protected void showStats(long opsPerSecond){
@@ -101,23 +100,15 @@ public abstract class BaseApp {
         long min = getDiffInStats(1);
         long max = getDiffInStats(1);
 
-        int startTimeNotSet = 0;
-        int endTimeNotSet = 0;
         for (int i = WARMUP; i < ITERATIONS; i++) {
             long diff = getDiffInStats(i);
-            if (Stats.finishTimes[i] == 0 ) {
-                endTimeNotSet++;
-            }
-            if (Stats.startTimes[i] == 0 ) {
-                startTimeNotSet++;
-            }
             if (diff < min) {
                 min = diff;
             } else if (diff > max) {
                 max = diff;
             }
         }
-        System.out.println("Start time not set: " + startTimeNotSet + ", endTimeNotSet " + endTimeNotSet);
+        //System.out.println("Start time not set: " + startTimeNotSet + ", endTimeNotSet " + endTimeNotSet);
         System.out.println("Minimum latency[ns]: " + min);
         System.out.println("Maximum latency[ns]: " + max);
 

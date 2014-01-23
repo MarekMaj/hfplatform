@@ -35,7 +35,7 @@ public final class AccountEventPublisher implements Runnable {
                 long sequence = ringBuffer.next();
                 AccountEvent event = ringBuffer.get(sequence);
                 generateAccountCommand(i, event.getAccountCommand());
-                Stats.startTimes[i] = System.nanoTime();
+                Stats.latencies[i] = System.nanoTime();
                 ringBuffer.publish(sequence);
             }
         }

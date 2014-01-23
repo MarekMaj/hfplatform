@@ -32,8 +32,8 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
         if (!event.isIgnoreAttempt()){
             committed++;
             Stats.increaseLoggedResults();
-            //chronicleEvent(event);
-            Stats.finishTimes[event.getResult().getId()] = System.nanoTime();
+            //chronicleEvent(event, localSequence + 1);
+            Stats.latencies[event.getResult().getId()] = System.nanoTime() - Stats.latencies[event.getResult().getId()];
         } else {
             ignored++;
             Stats.increaseIgnoredResults();
