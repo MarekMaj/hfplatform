@@ -27,24 +27,21 @@ public abstract class BaseApp {
     protected static final int WARMUP = 1000 * 1000 * 30;
     protected static final double INITIAL_BALANCE = 100000;
 
-    protected static final int GATEWAY_PUBLISHERS_COUNT = 1;
-    protected static final int GATEWAY_CONSUMERS_COUNT = 1;
     {
         Stats.startTimes = new long[ITERATIONS];
         Stats.finishTimes = new long[ITERATIONS];
     }
     protected Account[] accounts;
 
-    protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(GATEWAY_PUBLISHERS_COUNT + 1);
+    protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(1 + 1);
 
     protected final RingBuffer<AccountEvent> inputDisruptor =
             RingBuffer.createSingleProducer(AccountEvent.TRANSFER_EVENT_FACTORY,
                     INPUT_DISRUPTOR_SIZE,
                     new BusySpinWaitStrategy());  // TODO bound threads to cores
 
-    // TODO GATEWAY_PUBLISHERS_COUNT will always be one ?
-    protected final ExecutorService GATEWAY_PUBLISHERS_EXECUTOR = Executors.newSingleThreadExecutor();
-    protected final AccountEventPublisher[] accountEventPublishers = new AccountEventPublisher[GATEWAY_PUBLISHERS_COUNT];
+    protected final ExecutorService GATEWAY_PUBLISHER_EXECUTOR = Executors.newSingleThreadExecutor();
+    protected AccountEventPublisher accountEventPublisher;
 
 
     protected IndexedChronicle chronicle;
@@ -72,7 +69,7 @@ public abstract class BaseApp {
         //System.gc();
         long start = System.currentTimeMillis();
         start();
-        long opsPerSecond = (ITERATIONS * GATEWAY_PUBLISHERS_COUNT * 1000L) / (System.currentTimeMillis() - start);
+        long opsPerSecond = (ITERATIONS * 1000L) / (System.currentTimeMillis() - start);
         chronicle.close();
         showStats(opsPerSecond);
         showStatsSpecific();

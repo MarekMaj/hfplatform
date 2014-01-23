@@ -49,20 +49,15 @@ public class SingleThreadPublishingApp extends SingleThreadBaseApp {
         final CountDownLatch latch = new CountDownLatch(1);
         resultEventHandler.reset(latch, batchEventProcessor.getSequence().get() + ITERATIONS);
 
-        Future<?> future = GATEWAY_CONSUMERS_EXECUTOR.submit(new WithDedicatedCpuRunnable(batchEventProcessor));
+        GATEWAY_CONSUMERS_EXECUTOR.submit(new WithDedicatedCpuRunnable(batchEventProcessor));
 
         workerPool.start(WORKER_EXECUTOR);
 
-        Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
-        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            futures[i] = GATEWAY_PUBLISHERS_EXECUTOR.submit(new WithDedicatedCpuRunnable(accountEventPublishers[i]));
-        }
+        Future<?> future = GATEWAY_PUBLISHER_EXECUTOR.submit(new WithDedicatedCpuRunnable(accountEventPublisher));
 
         cyclicBarrier.await();
 
-        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            futures[i].get();
-        }
+        future.get();
 
         latch.await();
         workerPool.drainAndHalt();

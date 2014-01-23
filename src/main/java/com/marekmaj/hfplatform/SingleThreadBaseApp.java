@@ -15,9 +15,7 @@ public abstract class SingleThreadBaseApp extends BaseApp {
         }
     }
     {
-        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            accountEventPublishers[i] = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
-        }
+        accountEventPublisher = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
     }
 
     protected final ExecutorService WORKER_EXECUTOR = Executors.newSingleThreadExecutor();

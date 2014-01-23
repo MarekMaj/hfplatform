@@ -15,9 +15,7 @@ public abstract class StmBaseApp extends BaseApp {
         }
     }
     {
-        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            accountEventPublishers[i] = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
-        }
+        accountEventPublisher = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
     }
 
     protected static final int NUM_WORKERS = Integer.getInteger("stm.threads", 6);

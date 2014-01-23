@@ -25,16 +25,11 @@ public class SingleThreadApp extends SingleThreadBaseApp {
     private void startWork() throws Exception{
         workerPool.start(WORKER_EXECUTOR);
 
-        Future<?>[] futures = new Future[GATEWAY_PUBLISHERS_COUNT];
-        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            futures[i] = GATEWAY_PUBLISHERS_EXECUTOR.submit(accountEventPublishers[i]);
-        }
+        Future<?> future = GATEWAY_PUBLISHER_EXECUTOR.submit(accountEventPublisher);
 
         cyclicBarrier.await();
 
-        for (int i = 0; i < GATEWAY_PUBLISHERS_COUNT; i++) {
-            futures[i].get();
-        }
+        future.get();
 
         workerPool.drainAndHalt();
     }
