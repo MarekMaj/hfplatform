@@ -23,8 +23,8 @@ public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = 256;                      // to determinuje przepustowość
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 10000;
-    protected static final int ITERATIONS = 1000* 1000 * 110;
-    protected static final int WARMUP = 1000 * 1000 * 10;
+    protected static final int ITERATIONS = 1000* 1000 * 130;
+    protected static final int WARMUP = 1000 * 1000 * 30;
     protected static final double INITIAL_BALANCE = 100000;
 
     protected static final int GATEWAY_PUBLISHERS_COUNT = 1;
@@ -76,7 +76,9 @@ public abstract class BaseApp {
         chronicle.close();
         showStats(opsPerSecond);
         showStatsSpecific();
-        showHistogram();
+        try {
+            showHistogram();
+        } catch (Exception e) { }
 
         System.exit(0);
     }

@@ -20,7 +20,7 @@ public abstract class StmBaseApp extends BaseApp {
         }
     }
 
-    protected static final int NUM_WORKERS = 6;
+    protected static final int NUM_WORKERS = Integer.getInteger("stm.threads", 6);
     protected final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
 
 }

@@ -1,0 +1,52 @@
+[INFO] Scanning for projects...
+[INFO]                                                                         
+[INFO] ------------------------------------------------------------------------
+[INFO] Building hfplatform 1.0-SNAPSHOT
+[INFO] ------------------------------------------------------------------------
+[INFO] 
+[INFO] --- exec-maven-plugin:1.2.1:exec (default-cli) @ hfplatform ---
+Starting transactions...
+Initial whole balance: 1.0E9
+Current balance: 9.999999999999965E8
+Ops per second: 6502275
+Rollbacks for transfer operation: 0
+Rollbacks for account manipulation: 0
+Comitted: 0
+Canceled (the same account): 12807
+Canceled (insufficient funds): 0
+
+-------------ACCOUNT EVENT HANDLERS-------------
+Total ops for handler 130000000
+
+-------------RESULT EVENT PUBLISHERS-------------
+Total ready to publish results 130000000
+Total published results 130000000
+
+-------------RESULT EVENT HANDLERS-------------
+Total logged results 130000000
+Total ignored results 0
+Not consumed results 0
+
+-------------STATS COLLECTED-------------
+Start time not set: 0, endTimeNotSet 0
+Minimum latency[ns]: 264
+Maximum latency[ns]: 596606
+
+-------------HISTOGRAM[micro s]-------------
+Max time 596
+Min time 0
+Mean time 16.41389988
+50 percentile 17
+75 percentile 24
+90 percentile 28
+95 percentile 29
+99 percentile 39
+99.9 percentile 53
+Percentile for less than 1ms 100.0
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 22.246s
+[INFO] Finished at: Mon Jan 20 07:17:56 CET 2014
+[INFO] Final Memory: 5M/238M
+[INFO] ------------------------------------------------------------------------

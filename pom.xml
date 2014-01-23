@@ -58,12 +58,6 @@
             <version>0.5-rc1</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.9.5</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -75,6 +69,31 @@
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-Xms15g</argument>
+                        <argument>-Xmx15g</argument>
+                        <argument>-server</argument>
+                        <argument>-XX:+DoEscapeAnalysis</argument>
+                        <argument>-XX:+UseCompressedOops</argument>
+                        <argument>-Dstm.threads=${stm.threads}</argument>
+                        <argument>-Dop.factor=${op.factor}</argument>
+                        <argument>-classpath</argument>
+                        <classpath/>
+                        <argument>${main.class}</argument>
+  <!--                      <argument>-XX:+PrintGCTimeStamps</argument>
+                        <argument>-XX:+PrintGCDetails</argument>
+                        <argument>-Xloggc:gc.log</argument>-->
+                        <!--<argument>-classpath</argument>
+                        <classpath/>-->
+                    </arguments>
                 </configuration>
             </plugin>
         </plugins>

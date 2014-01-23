@@ -11,6 +11,7 @@ import net.jcip.annotations.NotThreadSafe;
 @NotThreadSafe
 public class SingleThreadedPublishingAccountService implements AccountService {
 
+    final ComplexOperation complexOperation = new ComplexOperation();
     final ResultEventPublisher resultEventPublisher;
 
     public SingleThreadedPublishingAccountService(final ResultEventPublisher resultEventPublisher) {
@@ -35,6 +36,7 @@ public class SingleThreadedPublishingAccountService implements AccountService {
         try {
             transferAccountCommand.getFrom().decreaseBalance(transferAccountCommand.getAmount());
             transferAccountCommand.getTo().increaseBalance(transferAccountCommand.getAmount());
+            complexOperation.performComplexOperationInIsolatedManner();
             resultEventPublisher.getNextResultEventAndPublishSuccess(transferAccountCommand.getId(), transferAccountCommand.getAmount());
             return true;
         } catch (InsufficientFundsException e){

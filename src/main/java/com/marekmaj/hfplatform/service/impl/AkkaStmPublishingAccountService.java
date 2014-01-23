@@ -13,6 +13,7 @@ import scala.concurrent.stm.japi.STM;
 @NotThreadSafe
 public class AkkaStmPublishingAccountService implements AccountService {
 
+    final ComplexOperation complexOperation = new ComplexOperation();
     final ResultEventPublisher resultEventPublisher;
 
     public AkkaStmPublishingAccountService(final ResultEventPublisher resultEventPublisher) {
@@ -40,6 +41,7 @@ public class AkkaStmPublishingAccountService implements AccountService {
                 public void run() {
                     transferAccountCommand.getFrom().decreaseBalance(transferAccountCommand.getAmount());
                     transferAccountCommand.getTo().increaseBalance(transferAccountCommand.getAmount());
+                    complexOperation.performComplexOperationInIsolatedManner();
 
                     final ResultEvent resultEvent = resultEventPublisher.getNextResultEvent();
                     resultEvent.getResult().setId(transferAccountCommand.getId());
