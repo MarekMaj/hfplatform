@@ -26,7 +26,7 @@ import java.util.concurrent.Executors;
 public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = Integer.getInteger("input.buffer.size", 256);
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
-    protected static final int NUM_ACCOUNTS = 10000;
+    protected static final int NUM_ACCOUNTS = Integer.getInteger("accounts.size", 10000);
     protected static final int ITERATIONS = 1000* 1000 * 550;
     protected static final int WARMUP = 1000 * 1000 * 50;
     protected static final double INITIAL_BALANCE = 100000;
@@ -40,6 +40,7 @@ public abstract class BaseApp {
             new NormalDistributionGenerator() : null) : null;
     static {
         System.out.println(BaseApp.class.getSimpleName() +": INPUT_DISRUPTOR_SIZE: " + INPUT_DISRUPTOR_SIZE);
+        System.out.println(BaseApp.class.getSimpleName() +": NUM_ACCOUNTS: " + NUM_ACCOUNTS);
         System.out.println(BaseApp.class.getSimpleName() +": TIME_GENERATOR: " + TIME_GENERATOR);
         System.out.println(BaseApp.class.getSimpleName() +": AFFINITY: " + AFFINITY);
     }

@@ -89,6 +89,7 @@
                         <argument>-Dtime.std=${time.std}</argument>
                         <argument>-Daffinity=${affinity}</argument>
                         <argument>-Dinput.buffer.size=${input.buffer.size}</argument>
+                        <argument>-Daccounts.size=${accounts.size}</argument>
                         <argument>-classpath</argument>
                         <classpath/>
                         <argument>${main.class}</argument>
