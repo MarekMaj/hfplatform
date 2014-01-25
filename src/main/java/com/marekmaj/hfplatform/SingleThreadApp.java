@@ -23,9 +23,8 @@ public class SingleThreadApp extends SingleThreadBaseApp {
     }
 
     private void startWork() throws Exception{
-        workerPool.start(WORKER_EXECUTOR);
-
         Future<?> future = GATEWAY_PUBLISHER_EXECUTOR.submit(accountEventPublisher);
+        workerPool.start(WORKER_EXECUTOR);
 
         cyclicBarrier.await();
 

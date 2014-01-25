@@ -41,10 +41,9 @@ public class StmApp extends StmBaseApp {
     }
 */
 
-    private void startWork() throws Exception{
-        workerPool.start(WORKERS_EXECUTOR);
-
+    private void startWork() throws Exception {
         Future<?> future = GATEWAY_PUBLISHER_EXECUTOR.submit(accountEventPublisher);
+        workerPool.start(WORKERS_EXECUTOR);
 
         cyclicBarrier.await();
 

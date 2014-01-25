@@ -2,6 +2,7 @@ package com.marekmaj.hfplatform;
 
 import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
 import com.marekmaj.hfplatform.service.model.SingleThreadedAccount;
+import net.openhft.affinity.AffinityThreadFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -18,5 +19,7 @@ public abstract class SingleThreadBaseApp extends BaseApp {
         accountEventPublisher = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
     }
 
-    protected final ExecutorService WORKER_EXECUTOR = Executors.newSingleThreadExecutor();
+    protected final ExecutorService WORKER_EXECUTOR = AFFINITY ?
+            Executors.newSingleThreadExecutor(new AffinityThreadFactory("WORKER_EXECUTOR")) :
+            Executors.newSingleThreadExecutor();
 }

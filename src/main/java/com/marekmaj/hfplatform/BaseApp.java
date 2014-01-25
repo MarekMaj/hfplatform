@@ -12,6 +12,7 @@ import com.marekmaj.hfplatform.utils.Stats;
 import com.marekmaj.hfplatform.utils.time.NormalDistributionGenerator;
 import com.marekmaj.hfplatform.utils.time.TimeDelayGenerator;
 import com.marekmaj.hfplatform.utils.time.UniformDistributionGenerator;
+import net.openhft.affinity.AffinityThreadFactory;
 import net.openhft.chronicle.IndexedChronicle;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.HistogramData;
@@ -23,7 +24,7 @@ import java.util.concurrent.Executors;
 
 
 public abstract class BaseApp {
-    protected static final int INPUT_DISRUPTOR_SIZE =  256;
+    protected static final int INPUT_DISRUPTOR_SIZE = Integer.getInteger("input.buffer.size", 256);
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 10000;
     protected static final int ITERATIONS = 1000* 1000 * 200;
@@ -31,12 +32,16 @@ public abstract class BaseApp {
     protected static final double INITIAL_BALANCE = 100000;
 
     protected Account[] accounts;
+    protected static final boolean AFFINITY = System.getProperties().containsKey("affinity") &&
+            System.getProperty("affinity").equalsIgnoreCase("true");
     private static final TimeDelayGenerator TIME_GENERATOR = System.getProperties().containsKey("time.gen") ?
             (System.getProperty("time.gen").equalsIgnoreCase("uniform") ?
             new UniformDistributionGenerator() : System.getProperty("time.gen").equalsIgnoreCase("normal") ?
             new NormalDistributionGenerator() : null) : null;
     static {
+        System.out.println(BaseApp.class.getSimpleName() +": INPUT_DISRUPTOR_SIZE: " + INPUT_DISRUPTOR_SIZE);
         System.out.println(BaseApp.class.getSimpleName() +": TIME_GENERATOR: " + TIME_GENERATOR);
+        System.out.println(BaseApp.class.getSimpleName() +": AFFINITY: " + AFFINITY);
     }
 
     protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(1 + 1);
@@ -46,7 +51,9 @@ public abstract class BaseApp {
                     INPUT_DISRUPTOR_SIZE,
                     new BusySpinWaitStrategy());  // TODO bound threads to cores
 
-    protected final ExecutorService GATEWAY_PUBLISHER_EXECUTOR = Executors.newSingleThreadExecutor();
+    protected final ExecutorService GATEWAY_PUBLISHER_EXECUTOR = AFFINITY ?
+            Executors.newSingleThreadExecutor(new AffinityThreadFactory("GATEWAY_PUBLISHER_EXECUTOR")) :
+            Executors.newSingleThreadExecutor();
     protected AccountEventPublisher accountEventPublisher;
 
 

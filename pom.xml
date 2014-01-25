@@ -88,6 +88,8 @@
                         <argument>-Dtime.gen=${time.gen}</argument>
                         <argument>-Dtime.mean=${time.mean}</argument>
                         <argument>-Dtime.std=${time.std}</argument>
+                        <argument>-Daffinity=${affinity}</argument>
+                        <argument>-Dinput.buffer.size=${input.buffer.size}</argument>
                         <argument>-classpath</argument>
                         <classpath/>
                         <argument>${main.class}</argument>

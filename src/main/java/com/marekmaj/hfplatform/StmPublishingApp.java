@@ -8,7 +8,7 @@ import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
 import com.marekmaj.hfplatform.processor.ResultEventHandler;
 import com.marekmaj.hfplatform.service.impl.AkkaStmPublishingAccountService;
 import com.marekmaj.hfplatform.utils.Stats;
-import com.marekmaj.hfplatform.utils.WithDedicatedCpuRunnable;
+import net.openhft.affinity.AffinityThreadFactory;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +30,9 @@ public class StmPublishingApp extends StmBaseApp {
         outputDisruptor.addGatingSequences(batchEventProcessor.getSequence());
     }
 
-    private final ExecutorService GATEWAY_CONSUMERS_EXECUTOR = Executors.newSingleThreadExecutor();
+    private final ExecutorService GATEWAY_CONSUMERS_EXECUTOR = AFFINITY ?
+            Executors.newSingleThreadExecutor(new AffinityThreadFactory("GATEWAY_CONSUMERS_EXECUTOR")) :
+            Executors.newSingleThreadExecutor();
 
     private final AccountEventWorkHandler[] accountEventWorkHandlers = new AccountEventWorkHandler[NUM_WORKERS];
     {
@@ -74,12 +76,11 @@ public class StmPublishingApp extends StmBaseApp {
         final CountDownLatch latch = new CountDownLatch(1);
         resultEventHandler.reset(latch, batchEventProcessor.getSequence().get() + ITERATIONS);
 
-        GATEWAY_CONSUMERS_EXECUTOR.submit(new WithDedicatedCpuRunnable(batchEventProcessor));
+        Future<?> future = GATEWAY_PUBLISHER_EXECUTOR.submit(accountEventPublisher);
+        GATEWAY_CONSUMERS_EXECUTOR.submit(batchEventProcessor);
 
         workerPool.start(WORKERS_EXECUTOR);
         //RingBuffer<ResultEvent> ringBuffer2 = getPool.start(GATEWAY_CONSUMERS_EXECUTOR);
-
-        Future<?> future = GATEWAY_PUBLISHER_EXECUTOR.submit(new WithDedicatedCpuRunnable(accountEventPublisher));
 
         cyclicBarrier.await();
 
