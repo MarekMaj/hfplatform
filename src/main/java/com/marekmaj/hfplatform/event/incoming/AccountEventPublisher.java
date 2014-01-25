@@ -14,6 +14,10 @@ public final class AccountEventPublisher implements Runnable {
     private final int iterations;
     private final Account[] accounts;
 
+    private static final boolean WAIT_FOR_GENERATED_TIME = System.getProperties().containsKey("time.gen");
+
+    private long cumulativeExpectedTimeTillLastEvent;
+
     public AccountEventPublisher(final CyclicBarrier cyclicBarrier,
                                  final RingBuffer<AccountEvent> ringBuffer,
                                  final int iterations,
@@ -28,19 +32,29 @@ public final class AccountEventPublisher implements Runnable {
     public void run() {
         try {
             cyclicBarrier.await();
-
-            // TODO spróbować generowac event co jakiś czas np. 100ns
-            // TODO przemyslec jak zmienil by sie model gdyby mierzyc start time przed ringBuffer.gets
+            cumulativeExpectedTimeTillLastEvent = System.nanoTime();
             for (int i = 0; i < iterations; i++) {
                 long sequence = ringBuffer.next();
                 AccountEvent event = ringBuffer.get(sequence);
                 generateAccountCommand(i, event.getAccountCommand());
-                Stats.latencies[i] = System.nanoTime();
+                if (WAIT_FOR_GENERATED_TIME) {
+                    busyWaitForEventStartTime(i);
+                } else {
+                    Stats.delaysBeforeLatenciesAfter[i] = System.nanoTime();
+                }
                 ringBuffer.publish(sequence);
             }
         }
         catch (Exception ex) {
             throw new RuntimeException(ex);
+        }
+    }
+
+    private void busyWaitForEventStartTime(int i) {
+        this.cumulativeExpectedTimeTillLastEvent += Stats.delaysBeforeLatenciesAfter[i];
+        Stats.delaysBeforeLatenciesAfter[i] = cumulativeExpectedTimeTillLastEvent;
+        while(System.nanoTime() < cumulativeExpectedTimeTillLastEvent) {
+            // busy wait
         }
     }
 

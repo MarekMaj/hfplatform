@@ -5,7 +5,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public final class Stats {
 
-    public static long[] latencies;
+    // na poczatku trzymam tu dlugości przerw pomiędy eventami, później opóźnienia żeby oszczedzić pamięć
+    public static long[] delaysBeforeLatenciesAfter;
     private static boolean gatherStats = true;
 
     private static final AtomicLong transactionRollbacks = new AtomicLong(0);

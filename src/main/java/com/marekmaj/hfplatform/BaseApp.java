@@ -9,6 +9,9 @@ import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
 import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
 import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.utils.Stats;
+import com.marekmaj.hfplatform.utils.time.NormalDistributionGenerator;
+import com.marekmaj.hfplatform.utils.time.TimeDelayGenerator;
+import com.marekmaj.hfplatform.utils.time.UniformDistributionGenerator;
 import net.openhft.chronicle.IndexedChronicle;
 import org.HdrHistogram.Histogram;
 import org.HdrHistogram.HistogramData;
@@ -20,17 +23,17 @@ import java.util.concurrent.Executors;
 
 
 public abstract class BaseApp {
-    protected static final int INPUT_DISRUPTOR_SIZE = 256;                      // to determinuje przepustowość
+    protected static final int INPUT_DISRUPTOR_SIZE =  1024 * 64;
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 10000;
-    protected static final int ITERATIONS = 1000* 1000 * 60;
+    protected static final int ITERATIONS = 1000* 1000 * 100;
     protected static final int WARMUP = 1000 * 1000 * 30;
     protected static final double INITIAL_BALANCE = 100000;
 
-    {
-        Stats.latencies = new long[ITERATIONS];
-    }
     protected Account[] accounts;
+    private static final TimeDelayGenerator TIME_GENERATOR = System.getProperty("time.gen").equalsIgnoreCase("uniform") ?
+            new UniformDistributionGenerator() : System.getProperty("time.gen").equalsIgnoreCase("normal") ?
+            new NormalDistributionGenerator() : null;
 
     protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(1 + 1);
 
@@ -63,14 +66,13 @@ public abstract class BaseApp {
     }
 
     protected void run() throws Exception{
+        if (TIME_GENERATOR != null) {
+            TIME_GENERATOR.initTimes(ITERATIONS);
+        }
         System.out.println( "Starting transactions..." );
-        //warmup();  // TODO
-        //System.gc();
-        long start = System.currentTimeMillis();
         start();
-        long opsPerSecond = (ITERATIONS * 1000L) / (System.currentTimeMillis() - start);
         chronicle.close();
-        showStats(opsPerSecond);
+        showStats();
         showStatsSpecific();
         try {
             showHistogram();
@@ -80,13 +82,14 @@ public abstract class BaseApp {
     }
 
     private long getDiffInStats(int i) {
-        return Stats.latencies[i];
+        return Stats.delaysBeforeLatenciesAfter[i];
     }
 
-    protected void showStats(long opsPerSecond){
+    protected void showStats(){
         System.out.println( "Initial whole balance: " + INITIAL_BALANCE*NUM_ACCOUNTS);
         System.out.println( "Current balance: " + sumBalance());
-        System.out.println( "Ops per second: " + opsPerSecond);
+        System.out.println( "Ops per second: " + ITERATIONS /
+                ((Stats.delaysBeforeLatenciesAfter[ITERATIONS] - Stats.delaysBeforeLatenciesAfter[WARMUP]) * 1000000));
         System.out.println( "Rollbacks for transfer operation: " + Stats.getTransactionRollbacks());
         System.out.println( "Rollbacks for account manipulation: " + Stats.getAccountRollbacks());
         System.out.println( "Comitted: " + Stats.getCommits());

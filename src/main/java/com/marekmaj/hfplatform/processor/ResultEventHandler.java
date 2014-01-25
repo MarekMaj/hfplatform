@@ -3,7 +3,6 @@ package com.marekmaj.hfplatform.processor;
 import com.lmax.disruptor.EventHandler;
 import com.marekmaj.hfplatform.event.outcoming.ResultEvent;
 import com.marekmaj.hfplatform.utils.Stats;
-import net.openhft.chronicle.Excerpt;
 import net.openhft.chronicle.IndexedChronicle;
 
 import java.util.concurrent.CountDownLatch;
@@ -33,7 +32,7 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             committed++;
             Stats.increaseLoggedResults();
             //chronicleEvent(event, localSequence + 1);
-            Stats.latencies[event.getResult().getId()] = System.nanoTime() - Stats.latencies[event.getResult().getId()];
+            Stats.delaysBeforeLatenciesAfter[event.getResult().getId()] = System.nanoTime() - Stats.delaysBeforeLatenciesAfter[event.getResult().getId()];
         } else {
             ignored++;
             Stats.increaseIgnoredResults();
