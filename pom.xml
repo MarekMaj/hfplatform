@@ -13,7 +13,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <!--TODO update depend-->
     <dependencies>
         <dependency>
             <groupId>com.lmax</groupId>
@@ -23,7 +22,7 @@
         <dependency>
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-agent_2.10</artifactId>
-            <version>2.1.4</version>
+            <version>2.2.3</version>
         </dependency>
         <dependency>
             <groupId>net.openhft</groupId>
@@ -43,7 +42,7 @@
         <dependency>
             <groupId>org.hdrhistogram</groupId>
             <artifactId>HdrHistogram</artifactId>
-            <version>1.0.8</version>
+            <version>1.0.9</version>
         </dependency>
 
         <dependency>

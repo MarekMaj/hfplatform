@@ -49,7 +49,7 @@ public abstract class BaseApp {
     protected final RingBuffer<AccountEvent> inputDisruptor =
             RingBuffer.createSingleProducer(AccountEvent.TRANSFER_EVENT_FACTORY,
                     INPUT_DISRUPTOR_SIZE,
-                    new BusySpinWaitStrategy());  // TODO bound threads to cores
+                    new BusySpinWaitStrategy());
 
     protected final ExecutorService GATEWAY_PUBLISHER_EXECUTOR = AFFINITY ?
             Executors.newSingleThreadExecutor(new AffinityThreadFactory("GATEWAY_PUBLISHER_EXECUTOR")) :
