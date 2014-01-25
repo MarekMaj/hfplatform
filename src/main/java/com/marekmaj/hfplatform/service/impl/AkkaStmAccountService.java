@@ -41,7 +41,6 @@ public class AkkaStmAccountService implements AccountService {
 
                     STM.afterCommit(new Runnable() {
                         public void run() {
-                            Stats.increaseCommits();
                         }
                     });
                 }

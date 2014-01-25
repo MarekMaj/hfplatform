@@ -4,6 +4,7 @@ import com.lmax.disruptor.WorkerPool;
 import com.marekmaj.hfplatform.event.incoming.AccountEvent;
 import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
 import com.marekmaj.hfplatform.service.impl.AkkaStmAccountService;
+import com.marekmaj.hfplatform.utils.MinorStatsPrinter;
 
 import java.util.concurrent.Future;
 
@@ -53,14 +54,7 @@ public class StmApp extends StmBaseApp {
     }
 
     @Override
-    protected void warmup() throws Exception {
-        startWork();
-    }
-
-    @Override
     protected void showStatsSpecific() {
-        for (AccountEventWorkHandler handler : accountEventWorkHandlers){
-            System.out.println( "Total ops for handler " + handler.getCounter());
-        }
+        MinorStatsPrinter.printAccountEventHandlersStats(accountEventWorkHandlers);
     }
 }

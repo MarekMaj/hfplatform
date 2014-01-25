@@ -8,14 +8,14 @@ import com.marekmaj.hfplatform.event.incoming.AccountEvent;
 import com.marekmaj.hfplatform.event.incoming.AccountEventPublisher;
 import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
 import com.marekmaj.hfplatform.service.model.Account;
+import com.marekmaj.hfplatform.utils.BasicStatsPrinter;
+import com.marekmaj.hfplatform.utils.HistogramPrinter;
 import com.marekmaj.hfplatform.utils.Stats;
 import com.marekmaj.hfplatform.utils.time.NormalDistributionGenerator;
 import com.marekmaj.hfplatform.utils.time.TimeDelayGenerator;
 import com.marekmaj.hfplatform.utils.time.UniformDistributionGenerator;
 import net.openhft.affinity.AffinityThreadFactory;
 import net.openhft.chronicle.IndexedChronicle;
-import org.HdrHistogram.Histogram;
-import org.HdrHistogram.HistogramData;
 
 import java.io.IOException;
 import java.util.concurrent.CyclicBarrier;
@@ -27,7 +27,7 @@ public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = Integer.getInteger("input.buffer.size", 256);
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 10000;
-    protected static final int ITERATIONS = 1000* 1000 * 200;
+    protected static final int ITERATIONS = 1000* 1000 * 550;
     protected static final int WARMUP = 1000 * 1000 * 50;
     protected static final double INITIAL_BALANCE = 100000;
 
@@ -87,67 +87,15 @@ public abstract class BaseApp {
         start();
         long opsPerSecond = (ITERATIONS * 1000L) / (System.currentTimeMillis() - start);
         chronicle.close();
-        showStats(opsPerSecond);
+        BasicStatsPrinter.showStats(opsPerSecond, INITIAL_BALANCE*NUM_ACCOUNTS, sumBalance());
         showStatsSpecific();
         try {
-            showHistogram();
+            HistogramPrinter.showHistogram(WARMUP, ITERATIONS);
         } catch (Exception e) { }
 
         System.exit(0);
     }
 
-    private long getDiffInStats(int i) {
-        return Stats.delaysBeforeLatenciesAfter[i];
-    }
-
-    protected void showStats(long opsPerSecond){
-        System.out.println( "Initial whole balance: " + INITIAL_BALANCE*NUM_ACCOUNTS);
-        System.out.println( "Current balance: " + sumBalance());
-        System.out.println( "Ops per second: " + opsPerSecond);
-        System.out.println( "Rollbacks for transfer operation: " + Stats.getTransactionRollbacks());
-        System.out.println( "Rollbacks for account manipulation: " + Stats.getAccountRollbacks());
-        System.out.println( "Comitted: " + Stats.getCommits());
-        System.out.println( "Canceled (the same account): " + Stats.getCanceled());
-        System.out.println( "Canceled (insufficient funds): " + Stats.getInsufficient());
-    }
-
-    private void showHistogram() {
-        System.out.println();
-        System.out.println( "-------------STATS COLLECTED-------------");
-        long min = getDiffInStats(WARMUP);
-        long max = getDiffInStats(WARMUP);
-
-        for (int i = WARMUP; i < ITERATIONS; i++) {
-            long diff = getDiffInStats(i);
-            if (diff < min) {
-                min = diff;
-            } else if (diff > max) {
-                max = diff;
-            }
-        }
-        //System.out.println("Start time not set: " + startTimeNotSet + ", endTimeNotSet " + endTimeNotSet);
-        System.out.println("Minimum latency[ns]: " + min);
-        System.out.println("Maximum latency[ns]: " + max);
-
-        System.out.println();
-        System.out.println( "-------------HISTOGRAM[micro s]-------------");
-        Histogram histogram = new Histogram(1000000, 5);
-        for (int i = WARMUP; i < ITERATIONS; i++) {
-            histogram.recordValue(getDiffInStats(i)/1000);
-        }
-
-        HistogramData data = histogram.getHistogramData();
-        System.out.println( "Max time " + data.getMaxValue());
-        System.out.println( "Min time " + data.getMinValue());
-        System.out.println( "Mean time " + data.getMean());
-        System.out.println( "50 percentile " + data.getValueAtPercentile(50));
-        System.out.println( "75 percentile " + data.getValueAtPercentile(75));
-        System.out.println( "90 percentile " + data.getValueAtPercentile(90));
-        System.out.println( "95 percentile " + data.getValueAtPercentile(95));
-        System.out.println( "99 percentile " + data.getValueAtPercentile(99));
-        System.out.println( "99.9 percentile " + data.getValueAtPercentile(99.9));
-        System.out.println( "Percentile for less than 1ms " + data.getPercentileAtOrBelowValue(1000));
-    }
     private double sumBalance(){
         double balance = 0.0;
         for(Account account: accounts){
@@ -157,8 +105,6 @@ public abstract class BaseApp {
     }
 
     protected abstract void start() throws Exception;
-
-    protected abstract void warmup() throws Exception;
 
     protected abstract void showStatsSpecific();
 }

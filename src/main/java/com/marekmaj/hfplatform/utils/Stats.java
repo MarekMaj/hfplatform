@@ -12,10 +12,7 @@ public final class Stats {
     private static final AtomicLong transactionRollbacks = new AtomicLong(0);
     private static final AtomicLong canceled = new AtomicLong(0);
     private static final AtomicLong insufficient = new AtomicLong(0);
-    private static final AtomicLong commits = new AtomicLong(0);
     private static final AtomicLong accountRollbacks = new AtomicLong(0);
-    private static final AtomicLong publishedResults = new AtomicLong(0);
-    private static final AtomicLong readyToPublishResults = new AtomicLong(0);
     private static final AtomicLong loggedResults = new AtomicLong(0L);
     private static final AtomicLong ignoredResults = new AtomicLong(0L);
 
@@ -31,20 +28,8 @@ public final class Stats {
         if (gatherStats) insufficient.incrementAndGet();
     }
 
-    public static void increaseCommits(){
-        if (gatherStats) commits.incrementAndGet();
-    }
-
     public static void increaseAccountRollbacks(){
         if (gatherStats) accountRollbacks.incrementAndGet();
-    }
-
-    public static void increaseReadyToPublishResults(){
-        if (gatherStats) readyToPublishResults.incrementAndGet();
-    }
-
-    public static void increasePublishedResults(){
-        if (gatherStats) publishedResults.incrementAndGet();
     }
 
     public static void increaseLoggedResults(){
@@ -68,20 +53,8 @@ public final class Stats {
         return insufficient.get();
     }
 
-    public static long getCommits() {
-        return commits.get();
-    }
-
     public static long getAccountRollbacks() {
         return accountRollbacks.get();
-    }
-
-    public static long getReadyToPublishResults() {
-        return readyToPublishResults.get();
-    }
-
-    public static long getPublishedResults() {
-        return publishedResults.get();
     }
 
     public static long getLoggedResults() {

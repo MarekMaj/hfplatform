@@ -98,6 +98,5 @@ class CommitAction implements Runnable{
         resultEvent.getResult().setStatus(true);
         resultEvent.getResult().setAmount(amount);
         resultEventPublisher.publishEvent();
-        Stats.increaseCommits();
     }
 }

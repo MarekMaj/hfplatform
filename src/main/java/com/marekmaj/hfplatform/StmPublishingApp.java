@@ -7,7 +7,7 @@ import com.marekmaj.hfplatform.event.outcoming.ResultEventPublisher;
 import com.marekmaj.hfplatform.processor.AccountEventWorkHandler;
 import com.marekmaj.hfplatform.processor.ResultEventHandler;
 import com.marekmaj.hfplatform.service.impl.AkkaStmPublishingAccountService;
-import com.marekmaj.hfplatform.utils.Stats;
+import com.marekmaj.hfplatform.utils.MinorStatsPrinter;
 import net.openhft.affinity.AffinityThreadFactory;
 
 import java.util.concurrent.CountDownLatch;
@@ -94,28 +94,9 @@ public class StmPublishingApp extends StmBaseApp {
     }
 
     @Override
-    protected void warmup() throws Exception {
-        startWork();
-    }
-
-    @Override
     protected void showStatsSpecific() {
-        System.out.println();
-        System.out.println( "-------------ACCOUNT EVENT HANDLERS-------------");
-        for (AccountEventWorkHandler handler : accountEventWorkHandlers){
-            System.out.println( "Total ops for handler " + handler.getCounter());
-        }
-        System.out.println();
-        System.out.println( "-------------RESULT EVENT PUBLISHERS-------------");
-        System.out.println( "Total ready to publish results " + Stats.getReadyToPublishResults());
-        System.out.println( "Total published results " + Stats.getPublishedResults());
-
-        System.out.println();
-        System.out.println( "-------------RESULT EVENT HANDLERS-------------");
-        System.out.println( "Total logged results " + Stats.getLoggedResults());
-        System.out.println( "Total ignored results " + Stats.getIgnoredResults());
-        System.out.println( "Not consumed results " + (Stats.getIgnoredResults() - Stats.getTransactionRollbacks()));
-
+        MinorStatsPrinter.printAccountEventHandlersStats(accountEventWorkHandlers);
+        MinorStatsPrinter.printResultEventStats();
     }
 
     // TODO how many gc and small gc

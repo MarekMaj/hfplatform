@@ -2,7 +2,6 @@ package com.marekmaj.hfplatform.event.outcoming;
 
 
 import com.lmax.disruptor.RingBuffer;
-import com.marekmaj.hfplatform.utils.Stats;
 import net.jcip.annotations.NotThreadSafe;
 
 @NotThreadSafe
@@ -23,9 +22,7 @@ public final class ResultEventPublisher {
     }
 
     public void publishEvent(){
-        Stats.increaseReadyToPublishResults();
         ringBuffer.publish(currentSequenceNumber);
-        Stats.increasePublishedResults();
     }
 
     public void getNextResultEventAndPublishSuccess(final int id, final double amount) {
