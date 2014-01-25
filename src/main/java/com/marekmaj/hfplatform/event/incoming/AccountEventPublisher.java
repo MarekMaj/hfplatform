@@ -14,7 +14,11 @@ public final class AccountEventPublisher implements Runnable {
     private final int iterations;
     private final Account[] accounts;
 
-    private static final boolean WAIT_FOR_GENERATED_TIME = System.getProperties().containsKey("time.gen");
+    private static final boolean WAIT_FOR_GENERATED_TIME = System.getProperties().containsKey("time.gen")
+            && !System.getProperty("time.gen").equals("${time.gen}") && !System.getProperty("time.gen").equals("none");
+    static {
+        System.out.println(AccountEventPublisher.class.getSimpleName() +": WAIT_FOR_GENERATED_TIME: " + WAIT_FOR_GENERATED_TIME);
+    }
 
     private long cumulativeExpectedTimeTillLastEvent;
 

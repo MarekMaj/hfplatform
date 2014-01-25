@@ -7,6 +7,9 @@ public final class ComplexOperation {
 
     private static final int BASE_OPERATIONS = 10;
     private static final int COMPLEXITY_FACTOR = Integer.getInteger("op.factor", 0);
+    static {
+        System.out.println(ComplexOperation.class.getSimpleName() +": COMPLEXITY_FACTOR: " + COMPLEXITY_FACTOR);
+    }
 
     private long value = 0;
 

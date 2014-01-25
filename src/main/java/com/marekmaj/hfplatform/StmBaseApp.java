@@ -18,7 +18,10 @@ public abstract class StmBaseApp extends BaseApp {
         accountEventPublisher = new AccountEventPublisher(cyclicBarrier, inputDisruptor, ITERATIONS, accounts);
     }
 
-    protected static final int NUM_WORKERS = Integer.getInteger("stm.threads", 6);
+    protected static final int NUM_WORKERS = Integer.getInteger("stm.threads", 5);
+    {
+        System.out.println(getClass().getSimpleName() +": NUM_WORKERS: " + NUM_WORKERS);
+    }
     protected final ExecutorService WORKERS_EXECUTOR = Executors.newFixedThreadPool(NUM_WORKERS);
 
 }

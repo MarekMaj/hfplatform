@@ -32,7 +32,8 @@ public class ResultEventHandler implements EventHandler<ResultEvent> {
             committed++;
             Stats.increaseLoggedResults();
             //chronicleEvent(event, localSequence + 1);
-            Stats.delaysBeforeLatenciesAfter[event.getResult().getId()] = System.nanoTime() - Stats.delaysBeforeLatenciesAfter[event.getResult().getId()];
+            Stats.delaysBeforeLatenciesAfter[event.getResult().getId()] =
+                    System.nanoTime() - Stats.delaysBeforeLatenciesAfter[event.getResult().getId()];
         } else {
             ignored++;
             Stats.increaseIgnoredResults();

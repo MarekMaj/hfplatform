@@ -1,4 +1,6 @@
 #!/bin/bash
+source /etc/environment
+mvn clean install
 
 function test {
 	for i in 1 2 3 4 5

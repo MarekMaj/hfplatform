@@ -23,17 +23,21 @@ import java.util.concurrent.Executors;
 
 
 public abstract class BaseApp {
-    protected static final int INPUT_DISRUPTOR_SIZE =  1024 * 64;
+    protected static final int INPUT_DISRUPTOR_SIZE =  256;
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = 10000;
-    protected static final int ITERATIONS = 1000* 1000 * 100;
-    protected static final int WARMUP = 1000 * 1000 * 30;
+    protected static final int ITERATIONS = 1000* 1000 * 200;
+    protected static final int WARMUP = 1000 * 1000 * 50;
     protected static final double INITIAL_BALANCE = 100000;
 
     protected Account[] accounts;
-    private static final TimeDelayGenerator TIME_GENERATOR = System.getProperty("time.gen").equalsIgnoreCase("uniform") ?
+    private static final TimeDelayGenerator TIME_GENERATOR = System.getProperties().containsKey("time.gen") ?
+            (System.getProperty("time.gen").equalsIgnoreCase("uniform") ?
             new UniformDistributionGenerator() : System.getProperty("time.gen").equalsIgnoreCase("normal") ?
-            new NormalDistributionGenerator() : null;
+            new NormalDistributionGenerator() : null) : null;
+    static {
+        System.out.println(BaseApp.class.getSimpleName() +": TIME_GENERATOR: " + TIME_GENERATOR);
+    }
 
     protected final CyclicBarrier cyclicBarrier = new CyclicBarrier(1 + 1);
 
@@ -66,13 +70,17 @@ public abstract class BaseApp {
     }
 
     protected void run() throws Exception{
+        Stats.delaysBeforeLatenciesAfter = new long[ITERATIONS];
         if (TIME_GENERATOR != null) {
             TIME_GENERATOR.initTimes(ITERATIONS);
         }
+
         System.out.println( "Starting transactions..." );
+        long start = System.currentTimeMillis();
         start();
+        long opsPerSecond = (ITERATIONS * 1000L) / (System.currentTimeMillis() - start);
         chronicle.close();
-        showStats();
+        showStats(opsPerSecond);
         showStatsSpecific();
         try {
             showHistogram();
@@ -85,11 +93,10 @@ public abstract class BaseApp {
         return Stats.delaysBeforeLatenciesAfter[i];
     }
 
-    protected void showStats(){
+    protected void showStats(long opsPerSecond){
         System.out.println( "Initial whole balance: " + INITIAL_BALANCE*NUM_ACCOUNTS);
         System.out.println( "Current balance: " + sumBalance());
-        System.out.println( "Ops per second: " + ITERATIONS /
-                ((Stats.delaysBeforeLatenciesAfter[ITERATIONS] - Stats.delaysBeforeLatenciesAfter[WARMUP]) * 1000000));
+        System.out.println( "Ops per second: " + opsPerSecond);
         System.out.println( "Rollbacks for transfer operation: " + Stats.getTransactionRollbacks());
         System.out.println( "Rollbacks for account manipulation: " + Stats.getAccountRollbacks());
         System.out.println( "Comitted: " + Stats.getCommits());
@@ -100,8 +107,8 @@ public abstract class BaseApp {
     private void showHistogram() {
         System.out.println();
         System.out.println( "-------------STATS COLLECTED-------------");
-        long min = getDiffInStats(1);
-        long max = getDiffInStats(1);
+        long min = getDiffInStats(WARMUP);
+        long max = getDiffInStats(WARMUP);
 
         for (int i = WARMUP; i < ITERATIONS; i++) {
             long diff = getDiffInStats(i);
