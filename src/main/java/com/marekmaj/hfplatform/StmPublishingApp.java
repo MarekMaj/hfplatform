@@ -89,7 +89,6 @@ public class StmPublishingApp extends StmBaseApp {
         latch.await();
         workerPool.drainAndHalt();
 
-        //getPool.drainAndHalt();
         batchEventProcessor.halt();
     }
 
@@ -98,6 +97,4 @@ public class StmPublishingApp extends StmBaseApp {
         MinorStatsPrinter.printAccountEventHandlersStats(accountEventWorkHandlers);
         MinorStatsPrinter.printResultEventStats();
     }
-
-    // TODO how many gc and small gc
 }

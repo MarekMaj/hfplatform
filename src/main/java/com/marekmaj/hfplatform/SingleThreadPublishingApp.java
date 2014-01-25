@@ -63,7 +63,6 @@ public class SingleThreadPublishingApp extends SingleThreadBaseApp {
         latch.await();
         workerPool.drainAndHalt();
 
-        //getPool.drainAndHalt();
         batchEventProcessor.halt();
     }
 

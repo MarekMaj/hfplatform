@@ -20,19 +20,24 @@ public final class HistogramPrinter {
                 max = diff;
             }
         }
-        //System.out.println("Start time not set: " + startTimeNotSet + ", endTimeNotSet " + endTimeNotSet);
+        System.out.println( "-------------MIN_MAX[nano s]-------------");
         System.out.println("Minimum latency[ns]: " + min);
         System.out.println("Maximum latency[ns]: " + max);
 
+        for (int i = start; i < end; i++) {
+            if (getDiffInStats(i) > 100_000_000) {
+                Stats.delaysBeforeLatenciesAfter[i] = 100_000_000;
+            }
+        }
         System.out.println();
         System.out.println( "-------------HISTOGRAM[micro s]-------------");
-        Histogram histogram = new Histogram(1000000, 5);
+        Histogram histogram = new Histogram(100_000, 5);
         for (int i = start; i < end; i++) {
             histogram.recordValue(getDiffInStats(i)/1000);
         }
 
         HistogramData data = histogram.getHistogramData();
-        System.out.println( "Max time " + data.getMaxValue());
+        //System.out.println( "Max time " + data.getMaxValue());
         System.out.println( "Min time " + data.getMinValue());
         System.out.println( "Mean time " + data.getMean());
         System.out.println( "50 percentile " + data.getValueAtPercentile(50));
@@ -42,6 +47,7 @@ public final class HistogramPrinter {
         System.out.println( "99 percentile " + data.getValueAtPercentile(99));
         System.out.println( "99.9 percentile " + data.getValueAtPercentile(99.9));
         System.out.println( "Percentile for less than 1ms " + data.getPercentileAtOrBelowValue(1000));
+        System.out.println( "Percentile for less than 99.999ms " + data.getPercentileAtOrBelowValue(99_999));
     }
 
     private static long getDiffInStats(int i) {

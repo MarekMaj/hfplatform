@@ -93,6 +93,7 @@ public abstract class BaseApp {
             HistogramPrinter.showHistogram(WARMUP, ITERATIONS);
         } catch (Exception e) { }
 
+        // TODO how many gc and small gc
         System.exit(0);
     }
 
