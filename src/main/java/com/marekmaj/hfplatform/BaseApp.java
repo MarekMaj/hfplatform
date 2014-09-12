@@ -11,6 +11,7 @@ import com.marekmaj.hfplatform.service.model.Account;
 import com.marekmaj.hfplatform.utils.BasicStatsPrinter;
 import com.marekmaj.hfplatform.utils.HistogramPrinter;
 import com.marekmaj.hfplatform.utils.Stats;
+import com.marekmaj.hfplatform.utils.time.BatchDistributionGenerator;
 import com.marekmaj.hfplatform.utils.time.NormalDistributionGenerator;
 import com.marekmaj.hfplatform.utils.time.TimeDelayGenerator;
 import com.marekmaj.hfplatform.utils.time.UniformDistributionGenerator;
@@ -27,7 +28,7 @@ public abstract class BaseApp {
     protected static final int INPUT_DISRUPTOR_SIZE = Integer.getInteger("input.buffer.size", 256);
     protected static final int OUTPUT_DISRUPTOR_SIZE = 1024 * 64;
     protected static final int NUM_ACCOUNTS = Integer.getInteger("accounts.size", 10000);
-    protected static final int ITERATIONS = 1000* 1000 * 550;
+    protected static final int ITERATIONS = 1000* 1000 * 150;
     protected static final int WARMUP = 1000 * 1000 * 50;
     protected static final double INITIAL_BALANCE = 100000;
 
@@ -37,7 +38,8 @@ public abstract class BaseApp {
     private static final TimeDelayGenerator TIME_GENERATOR = System.getProperties().containsKey("time.gen") ?
             (System.getProperty("time.gen").equalsIgnoreCase("uniform") ?
             new UniformDistributionGenerator() : System.getProperty("time.gen").equalsIgnoreCase("normal") ?
-            new NormalDistributionGenerator() : null) : null;
+            new NormalDistributionGenerator() : System.getProperty("time.gen").equalsIgnoreCase("batch") ?
+            new BatchDistributionGenerator() : null) : null;
     static {
         System.out.println(BaseApp.class.getSimpleName() +": INPUT_DISRUPTOR_SIZE: " + INPUT_DISRUPTOR_SIZE);
         System.out.println(BaseApp.class.getSimpleName() +": NUM_ACCOUNTS: " + NUM_ACCOUNTS);
