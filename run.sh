@@ -10,7 +10,7 @@ function threads {
 	do
 	for i in 1 2 3 4 5
 	do
-	    mkdir -p $dir/threads/$threads/
+	    #mkdir -p $dir/threads/$threads/
         mkdir -p $dir/threads_affinity/$threads/
 	    echo "$1"
 	    eval $1
@@ -19,7 +19,7 @@ function threads {
 }
 
 function accounts {
-    for accounts in 100 1000 10000 100000
+    for accounts in 10 100 1000 10000 100000
 	do
 	for i in 1 2 3 4 5
 	do
@@ -56,26 +56,10 @@ function factors {
 	done
 }
 
-# jeszcze single thread bez affinity
-
-# TESTY WYKONANE BEZ GENERATORA CZASÓW dla bufora wielkości 128
-# STM rożna liczba watków (średnie opóźnienie, 99percentyl, przepustowość) - 6 testów watki
-#threads "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dinput.buffer.size=128 -Dstm.threads="\$threads" > $dir/threads/\$threads/\$i"
-
-# TESTY WYKONANE BEZ GENERATORA CZASÓW dla bufora wielkości 128 (affinity)
-# STM rożna liczba watków affinity (średnie opóźnienie, 99percentyl, przepustowość) - 6 testów watki
-#threads "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dinput.buffer.size=128  -Dstm.threads="\$threads" -Daffinity=true > $dir/threads_affinity/\$threads/\$i"
-
-# TESTY WYKONANE BEZ GENERATORA CZASÓW dla bufora wielkości 128 (affinity, 5wątków)
-# STM różna liczba kolizji (średnie opóźnienie, 99percentyl, przepustowość, liczba rollbacków) - 4 testy konta 100, 1000, 10000, 100000
-#accounts "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dinput.buffer.size=128  -Daccounts.size="\$accounts" -Daffinity=true > $dir/accounts/\$accounts/\$i"
-
 # STM różna wielkośc bufora (średnie opóźnienie, 99percentyl, przepustowość) - 5 testy bufor 16, 64, 256, 1024, 4+1024
 # single różna wielkośc bufora (średnie opóźnienie, 99percentyl, przepustowość) - 5 testy bufor 16, 64, 256, 1024, 4+1024
 #buffers "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dinput.buffer.size="\$buffers" -Daffinity=true > $dir/buffers/stm/\$buffers/\$i"
 #buffers "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.SingleThreadPublishingApp" -Dinput.buffer.size="\$buffers" -Daffinity=true > $dir/buffers/single/\$buffers/\$i"
-
-
 
 
 # dla najlepszej wielkości bufora (kompromis pomiędzy op a przep) i affinity
@@ -89,7 +73,7 @@ function factors {
 
 
 function uniform {
-    for factors in 0 1 2 4 6 8 10
+    for factors in 1 2 4 8 12 16
 	do
 	for i in 1 2 3 4 5
 	do
@@ -102,7 +86,7 @@ function uniform {
 }
 
 function batch {
-    for factors in 0 1 2 4 6 8 10
+    for factors in 1 2 4 8 12 16
 	do
 	for i in 1 2 3 4 5
 	do
@@ -122,23 +106,18 @@ function batch {
 # na wykresie 50, 90, 99 percentyl i przepustowość dla różnej złożoności
 
 # STM rożna liczba watków (średnie opóźnienie, 99percentyl, przepustowość) - 6 testów watki
-threads "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dstm.threads="\$threads" -Dtime.gen="uniform" -Dinput.buffer.size="65536" > $dir/threads/\$threads/\$i"
+threads "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dstm.threads="\$threads" -Dtime.gen="batch" -Dinput.buffer.size="65536" > $dir/threads/\$threads/\$i"
 # STM rożna liczba watków affinity
-threads "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dstm.threads="\$threads" -Dtime.gen="uniform" -Dinput.buffer.size="65536" -Daffinity=true > $dir/threads_affinity/\$hreads/\$i"
+threads "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dstm.threads="\$threads" -Dtime.gen="batch" -Dinput.buffer.size="65536" -Daffinity=true > $dir/threads_affinity/\$threads/\$i"
 
 # STM różna liczba kolizji (średnie opóźnienie, 99percentyl, przepustowość, liczba rollbacków) - 4 testy konta 100, 1000, 10000, 100000
-accounts "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Daccounts.size="\$accounts" -Dtime.gen="uniform" -Dinput.buffer.size="65536" -Daffinity=true > $dir/accounts/\$accounts/\$i"
+accounts "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Daccounts.size="\$accounts" -Dtime.gen="batch" -Dinput.buffer.size="65536" -Daffinity=true > $dir/accounts/\$accounts/\$i"
 
 
 # STM różny wsp. złożonosci (średnie opóźnienie, 99percentyl, przepustowość) - 7 testy współczynnik 0, 1, 2, 4, 6, 8, 10
 # single różny wsp. złożonosci (średnie opóźnienie, 99percentyl, przepustowość) - 7 testy współczynnik 0, 1, 2, 4, 6, 8, 10
 uniform "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.StmPublishingApp" -Dop.factor="\$factors" -Dtime.gen="uniform" -Dinput.buffer.size="65536" -Daffinity=true > $dir/uniform/factors/stm/\$factors/\$i"
 uniform "mvn exec:exec -Dmain.class="com.marekmaj.hfplatform.SingleThreadPublishingApp" -Dop.factor="\$factors" -Dtime.gen="uniform" -Dinput.buffer.size="65536" -Daffinity=true > $dir/uniform/factors/single/\$factors/\$i"
-
-# TESTY WYKONANE Z GENERATOREM ROZKŁAD NORMALNY (1mikros, std dev. 200ns)
-# STM różny wsp. złożonosci (średnie opóźnienie, 99percentyl, przepustowość) - 7 testy współczynnik 0, 1, 2, 4, 6, 8, 10
-# single różny wsp. złożonosci (średnie opóźnienie, 99percentyl, przepustowość) - 7 testy współczynnik 0, 1, 2, 4, 6, 8, 10
-
 
 # TESTY WYKONANE Z GENERATOREM ROZKŁAD Z BATCHAMI
 #przychodzi 1000 co 1ms
