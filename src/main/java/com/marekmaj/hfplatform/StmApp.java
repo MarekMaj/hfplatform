@@ -27,20 +27,6 @@ public class StmApp extends StmBaseApp {
     public void start() throws Exception {
         startWork();
     }
-/*
-
-    private void startWorkOld(final long iterations) throws Exception{
-        RingBuffer<AccountEvent> inputDisruptor = workerPool.start(WORKERS_EXECUTOR);
-
-        for (long i = 0; i < iterations; i++) {
-            long sequence = inputDisruptor.next();
-            inputDisruptor.get(sequence).setAccountCommand(createRandomTransferAccountCommand());
-            inputDisruptor.publish(sequence);
-        }
-
-        workerPool.drainAndHalt();
-    }
-*/
 
     private void startWork() throws Exception {
         Future<?> future = GATEWAY_PUBLISHER_EXECUTOR.submit(accountEventPublisher);

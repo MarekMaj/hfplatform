@@ -45,24 +45,6 @@ public class StmPublishingApp extends StmBaseApp {
 
     private final WorkerPool<AccountEvent> workerPool = getAccountEventWorkerPool(accountEventWorkHandlers);
 
-/*
-    private final ResultEventWorkHandler[] resultEventWorkHandlers = new ResultEventWorkHandler[GATEWAY_CONSUMERS_COUNT];
-    {
-        for (int i = 0; i < GATEWAY_CONSUMERS_COUNT; i++){
-            resultEventWorkHandlers[i] = new ResultEventWorkHandler();
-        }
-    }
-
-    private final WorkerPool<ResultEvent> getPool =
-            new WorkerPool<ResultEvent>(outputDisruptor,
-                    outputDisruptor.newBarrier(),
-                    new FatalExceptionHandler(),
-                    resultEventWorkHandlers);
-    {
-        outputDisruptor.addGatingSequences(getPool.getWorkerSequences());
-    }
-*/
-
     public static void main( String[] args ) throws Exception{
         new StmPublishingApp().run();
     }
